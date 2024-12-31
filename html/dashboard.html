@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #5e3370; /* Softer purple for improved readability */
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+        }
+        .card {
+            border: none;
+        }
+        .card-header {
+            background-color: #7a417d; /* Muted purple for header */
+            color: #ffffff;
+        }
+        .card-body {
+            background-color: #663366; /* Darker purple for body */
+        }
+        .btn-primary {
+            background-color: #a567a5; /* Lighter purple for buttons */
+            border-color: #a567a5;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #944d94; /* Slightly darker purple on hover */
+            border-color: #944d94;
+        }
+        h1 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+        }
+        p, label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            color: #e0e0e0; /* Light gray for text */
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h1 id="greeting">Dashboard</h1>
+                </div>
+                <div class="card-body">
+                    <p>Welcome to your wine management dashboard. What would you like to do?</p>
+                    <div class="d-grid gap-3">
+                        <button id="register-wine" class="btn btn-primary btn-lg">Register Wine</button>
+                        <button id="rate-wine" class="btn btn-secondary btn-lg">Rate Wine</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Get the username from the cookie
+    const getCookie = (name) => {
+        const cookies = document.cookie.split('; ');
+        const cookie = cookies.find(row => row.startsWith(`${name}=`));
+        return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+    };
+    const username = getCookie('wineuser');
+
+    // Update greeting
+    if (username) {
+        document.getElementById('greeting').textContent = `Hello, ${username}`;
+    }
+
+    document.getElementById('register-wine').addEventListener('click', function() {
+        window.location.href = '/register-wine';
+    });
+
+    document.getElementById('rate-wine').addEventListener('click', function() {
+        window.location.href = '/rate-wine';
+    });
+</script>
+</body>
+</html>

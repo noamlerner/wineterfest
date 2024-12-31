@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Wine</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #5e3370; /* Softer purple for improved readability */
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+        }
+        .card {
+            border: none;
+        }
+        .card-header {
+            background-color: #7a417d; /* Muted purple for header */
+            color: #ffffff;
+        }
+        .card-body {
+            background-color: #663366; /* Darker purple for body */
+        }
+        .btn-primary {
+            background-color: #a567a5; /* Lighter purple for buttons */
+            border-color: #a567a5;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #944d94; /* Slightly darker purple on hover */
+            border-color: #944d94;
+        }
+        h1 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+        }
+        p, label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            color: #e0e0e0; /* Light gray for text */
+        }
+        .form-control {
+            background-color: #f5f5f5; /* Light background for input */
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        .form-control:focus {
+            border-color: #7a417d;
+            box-shadow: 0 0 0 0.2rem rgba(122, 65, 125, 0.25);
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h1>Register Wine</h1>
+                </div>
+                <div class="card-body">
+                    <form id="register-wine-form">
+                        <div class="mb-3">
+                            <label for="wine-name" class="form-label">Wine Name</label>
+                            <input type="text" class="form-control" id="wine-name" placeholder="Enter wine name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="wine-price" class="form-label">Wine Price</label>
+                            <input type="number" step="0.01" class="form-control" id="wine-price" placeholder="Enter wine price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="anonymized-number" class="form-label">Anonymized Number</label>
+                            <input type="number" class="form-control" id="anonymized-number" placeholder="Enter anonymized number" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Register Wine</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('register-wine-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const wineName = document.getElementById('wine-name').value;
+        const winePrice = document.getElementById('wine-price').value;
+        const anonymizedNumber = document.getElementById('anonymized-number').value;
+
+        // Get the username from the cookie
+        const getCookie = (name) => {
+            const cookies = document.cookie.split('; ');
+            const cookie = cookies.find(row => row.startsWith(`${name}=`));
+            return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+        };
+        const username = getCookie('wineuser');
+
+        if (!username) {
+            alert('Error: User not logged in.');
+            return;
+        }
+
+        // Send data to the API
+        try {
+            const response = await fetch('/register-wine', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    wineName,
+                    winePrice,
+                    anonymizedNumber,
+                    username,
+                }),
+            });
+
+        } catch (error) {
+            alert(error)
+        }
+        window.location.href = '/home';
+    });
+</script>
+</body>
+</html>
