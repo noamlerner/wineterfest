@@ -39,3 +39,5 @@ logs:
 ```
 sudo journalctl -u goapp -f
 ```
+
+URL: http://18.144.90.118:8080/signup
