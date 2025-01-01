@@ -14,39 +14,48 @@
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
         }
+
         .card {
             border: none;
         }
+
         .card-header {
             background-color: #7a417d; /* Muted purple for header */
             color: #ffffff;
         }
+
         .card-body {
             background-color: #663366; /* Darker purple for body */
         }
+
         .btn-primary {
             background-color: #a567a5; /* Lighter purple for buttons */
             border-color: #a567a5;
             color: #ffffff;
         }
+
         .btn-primary:hover {
             background-color: #944d94; /* Slightly darker purple on hover */
             border-color: #944d94;
         }
+
         h1 {
             font-family: 'Roboto', sans-serif;
             font-weight: bold;
         }
+
         p, label {
             font-family: 'Roboto', sans-serif;
             font-size: 1rem;
             color: #e0e0e0; /* Light gray for text */
         }
+
         .form-control {
             background-color: #f5f5f5; /* Light background for input */
             border: 1px solid #ddd;
             color: #333;
         }
+
         .form-control:focus {
             border-color: #7a417d;
             box-shadow: 0 0 0 0.2rem rgba(122, 65, 125, 0.25);
@@ -65,15 +74,18 @@
                     <form id="register-wine-form">
                         <div class="mb-3">
                             <label for="wine-name" class="form-label">Wine Name</label>
-                            <input type="text" class="form-control" id="wine-name" placeholder="Enter wine name" required>
+                            <input type="text" class="form-control" id="wine-name" placeholder="Enter wine name"
+                                   required>
                         </div>
                         <div class="mb-3">
                             <label for="wine-price" class="form-label">Wine Price</label>
-                            <input type="number" step="0.01" class="form-control" id="wine-price" placeholder="Enter wine price" required>
+                            <input type="number" step="0.01" class="form-control" id="wine-price"
+                                   placeholder="Enter wine price" required>
                         </div>
                         <div class="mb-3">
                             <label for="anonymized-number" class="form-label">Anonymized Number</label>
-                            <input type="number" class="form-control" id="anonymized-number" placeholder="Enter anonymized number" required>
+                            <input type="number" class="form-control" id="anonymized-number"
+                                   placeholder="Enter anonymized number" required>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Register Wine</button>
@@ -88,11 +100,11 @@
 <!-- Include Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById('register-wine-form').addEventListener('submit', async function(e) {
+    document.getElementById('register-wine-form').addEventListener('submit', async function (e) {
         e.preventDefault();
         const wineName = document.getElementById('wine-name').value;
-        const winePrice = document.getElementById('wine-price').value;
-        const anonymizedNumber = document.getElementById('anonymized-number').value;
+        const winePrice = parseFloat(document.getElementById('wine-price').value);
+        const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
 
         // Get the username from the cookie
         const getCookie = (name) => {

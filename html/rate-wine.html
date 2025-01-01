@@ -97,8 +97,8 @@
 <script>
     document.getElementById('rate-wine-form').addEventListener('submit', async function (e) {
         e.preventDefault();
-        const anonymizedNumber = document.getElementById('anonymized-number').value;
-        const rating = document.getElementById('rating').value;
+        const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
+        const rating = parseInt(document.getElementById('rating').value, 10);
 
         // Get the wineuser cookie
         const getCookie = (name) => {
