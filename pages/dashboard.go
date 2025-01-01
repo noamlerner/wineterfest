@@ -5,8 +5,6 @@ import (
 )
 
 type Dashboard struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
 }
 
 func (s *Dashboard) ServeHTTP(w http.ResponseWriter, r *http.Request) {

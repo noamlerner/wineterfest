@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"wineterfest/winedb"
 )
 
 type Signup struct {
+	CL *winedb.Client
 }
 
 type UsernameReq struct {
@@ -40,7 +42,17 @@ func (s *Signup) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Username == "" || len(req.Username) > 200 {
+		http.Error(w, "Please send a request body", 400)
+	}
 	fmt.Println(req.Username)
+
+	err = s.CL.CreateUser(r.Context(), req.Username)
+	if err != nil {
+		http.Error(w, "Please send a request body", 400)
+		return
+	}
+
 	// Simulate username validation
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"valid": true}`))

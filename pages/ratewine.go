@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"wineterfest/datamodels"
+	"wineterfest/winedb"
 )
 
 type RateWine struct {
-}
-type WineRating struct {
-	AnonymizedNumber int    `json:"anonymizedNumber"`
-	Rating           int    `json:"rating"`
-	Wineuser         string `json:"wineuser"`
+	CL *winedb.Client
 }
 
 func (s *RateWine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,9 +34,13 @@ func (s *RateWine) rateWine(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(string(all))
+	wineRating := datamodels.WineRating{}
+	err = json.NewDecoder(r.Body).Decode(&wineRating)
+	if err != nil {
+		http.Error(w, "Please send a request body", 400)
+	}
 
-	wineRating := WineRating{}
-	err = json.Unmarshal(all, &wineRating)
+	err = s.CL.CreateWineRating(r.Context(), &wineRating)
 	if err != nil {
 		http.Error(w, "Please send a request body", 400)
 	}
