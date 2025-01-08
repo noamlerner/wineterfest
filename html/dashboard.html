@@ -79,8 +79,8 @@
             border-radius: 8px; /* Slightly rounded corners */
             margin-bottom: 10px; /* Space between items */
             display: flex;
-            justify-content: space-between; /* Align content horizontally */
-            align-items: center; /* Center content vertically */
+            flex-direction: column;
+            gap: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
         }
         .list-group-item:hover {
@@ -128,7 +128,6 @@
 <!-- Include Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Get the username from the cookie
     const getCookie = (name) => {
         const cookies = document.cookie.split('; ');
         const cookie = cookies.find(row => row.startsWith(`${name}=`));
@@ -136,7 +135,6 @@
     };
     const username = getCookie('wineuser');
 
-    // Update greeting
     if (username) {
         document.getElementById('greeting').textContent = `Hello, ${username}`;
     }
@@ -150,7 +148,7 @@
     });
 
     let wineRatings = [];
-    let wines = null; // Use null to indicate wines haven't been fetched yet.
+    let wines = null;
 
     async function fetchRatings() {
         try {
@@ -184,14 +182,27 @@
         data.forEach(item => {
             const listItem = document.createElement('li');
             listItem.classList.add('list-group-item');
-            listItem.innerHTML = `WineNumber: <strong>${item.anonymizedNumber || item.wineName}</strong> <span>${item.rating ? `Rating: <strong>${item.rating}</strong>` : ''}</span>`;
+
+            if (title === 'Your Wines') {
+                listItem.innerHTML = `
+                    <div><strong>Wine Name:</strong> ${item.wineName}</div>
+                    <div><strong>Price:</strong> $${item.winePrice}</div>
+                    <div><strong>Anonymized Number:</strong> ${item.anonymizedNumber}</div>
+                `;
+            } else {
+                listItem.innerHTML = `
+                    Wine Number: <strong>${item.anonymizedNumber || item.wineName}</strong>
+                    ${item.rating ? `<span>Rating: <strong>${item.rating}</strong></span>` : ''}
+                `;
+            }
+
             listContainer.appendChild(listItem);
         });
     }
 
     document.getElementById('my-wines').addEventListener('click', function () {
         if (wines === null) {
-            fetchWines(); // Fetch wines if not already fetched.
+            fetchWines();
         } else {
             populateList(wines, 'Your Wines');
         }
@@ -201,9 +212,7 @@
         populateList(wineRatings, 'Your Wine Ratings');
     });
 
-    // Fetch ratings on load by default
     fetchRatings();
 </script>
-
 </body>
 </html>
