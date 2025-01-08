@@ -70,6 +70,34 @@ func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamod
 	return ratings, nil
 }
 
+func (cl *Client) AllWines(ctx context.Context) ([]datamodels.Wine, error) {
+	// Prepare the scan input.
+	input := &dynamodb.ScanInput{
+		TableName: aws.String(winesTableName),
+	}
+
+	var allItems []datamodels.Wine
+	paginator := dynamodb.NewScanPaginator(cl.CL, input)
+
+	// Paginate through all items.
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch page: %w", err)
+		}
+
+		for _, item := range page.Items {
+			var wine datamodels.Wine
+			if err := attributevalue.UnmarshalMap(item, &wine); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal item: %w", err)
+			}
+			allItems = append(allItems, wine)
+		}
+	}
+
+	return allItems, nil
+}
+
 func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating) error {
 	marshalMap, err := attributevalue.MarshalMap(w)
 	if err != nil {

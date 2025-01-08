@@ -90,6 +90,9 @@
         .list-group-item:last-child {
             border-bottom: none;
         }
+        .d-flex-center {
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -105,10 +108,13 @@
                     <div class="d-grid gap-3">
                         <button id="register-wine" class="btn btn-primary btn-lg">Register Wine</button>
                         <button id="rate-wine" class="btn btn-secondary btn-lg">Rate Wine</button>
-                        <button id="my-wines" class="btn btn-success btn-lg">My Wines</button>
+                        <div class="d-flex d-flex-center gap-2">
+                            <button id="my-wines" class="btn btn-success btn-lg">My Wines</button>
+                            <button id="my-wine-ratings" class="btn btn-success btn-lg">My Wine Ratings</button>
+                        </div>
                     </div>
                     <div class="mt-5">
-                        <h2>Your Wine Ratings</h2>
+                        <h2 id="list-title">Your Wine Ratings</h2>
                         <ul id="wine-list" class="list-group">
                             <li class="list-group-item">Loading...</li>
                         </ul>
@@ -135,45 +141,69 @@
         document.getElementById('greeting').textContent = `Hello, ${username}`;
     }
 
-    document.getElementById('register-wine').addEventListener('click', function() {
+    document.getElementById('register-wine').addEventListener('click', function () {
         window.location.href = '/register-wine';
     });
 
-    document.getElementById('rate-wine').addEventListener('click', function() {
+    document.getElementById('rate-wine').addEventListener('click', function () {
         window.location.href = '/rate-wine';
     });
 
-    document.getElementById('my-wines').addEventListener('click', function() {
-        window.location.href = '/my-wines';
-    });
+    let wineRatings = [];
+    let wines = null; // Use null to indicate wines haven't been fetched yet.
 
-    // Fetch wine ratings from the server with username
     async function fetchRatings() {
         try {
-            const response = await fetch(`/my-ratings?username=${encodeURIComponent(username)}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch ratings');
-            }
-            const data = await response.json();
-            const listContainer = document.getElementById('wine-list');
-            listContainer.innerHTML = '';
-
-            data.forEach(item => {
-                const listItem = document.createElement('li');
-                listItem.classList.add('list-group-item');
-                listItem.innerHTML = `WineNumber: <strong>${item.anonymizedNumber}</strong> <span>Rating: <strong>${item.rating}</strong></span>`;
-                listItem.addEventListener('click', () => {
-                    alert(`You clicked on WineNumber: ${item.anonymizedNumber}`);
-                });
-                listContainer.appendChild(listItem);
-            });
+            const ratingsResponse = await fetch(`/my-ratings?username=${encodeURIComponent(username)}`);
+            if (!ratingsResponse.ok) throw new Error('Failed to fetch ratings');
+            wineRatings = await ratingsResponse.json();
+            populateList(wineRatings, 'Your Wine Ratings');
         } catch (error) {
             console.error(error);
-            document.getElementById('wine-list').innerHTML = '<li class="list-group-item text-danger">Failed to load wine ratings</li>';
+            document.getElementById('wine-list').innerHTML = '<li class="list-group-item text-danger">Failed to load ratings</li>';
         }
     }
 
+    async function fetchWines() {
+        try {
+            const winesResponse = await fetch(`/my-wines?username=${encodeURIComponent(username)}`);
+            if (!winesResponse.ok) throw new Error('Failed to fetch wines');
+            wines = await winesResponse.json();
+            populateList(wines, 'Your Wines');
+        } catch (error) {
+            console.error(error);
+            document.getElementById('wine-list').innerHTML = '<li class="list-group-item text-danger">Failed to load wines</li>';
+        }
+    }
+
+    function populateList(data, title) {
+        const listContainer = document.getElementById('wine-list');
+        listContainer.innerHTML = '';
+        document.getElementById('list-title').textContent = title;
+
+        data.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('list-group-item');
+            listItem.innerHTML = `WineNumber: <strong>${item.anonymizedNumber || item.wineName}</strong> <span>${item.rating ? `Rating: <strong>${item.rating}</strong>` : ''}</span>`;
+            listContainer.appendChild(listItem);
+        });
+    }
+
+    document.getElementById('my-wines').addEventListener('click', function () {
+        if (wines === null) {
+            fetchWines(); // Fetch wines if not already fetched.
+        } else {
+            populateList(wines, 'Your Wines');
+        }
+    });
+
+    document.getElementById('my-wine-ratings').addEventListener('click', function () {
+        populateList(wineRatings, 'Your Wine Ratings');
+    });
+
+    // Fetch ratings on load by default
     fetchRatings();
 </script>
+
 </body>
 </html>
