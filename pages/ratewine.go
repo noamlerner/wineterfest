@@ -40,6 +40,12 @@ func (s *RateWine) rateWine(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please send a request body", 400)
 	}
 
+	wine, err := s.CL.GetWine(r.Context(), wineRating.AnonymizedNumber)
+	if wine == nil {
+		http.Error(w, "Wine Number Does Not Exist", 400)
+		return
+	}
+
 	err = s.CL.CreateWineRating(r.Context(), &wineRating)
 	if err != nil {
 		http.Error(w, "Please send a request body", 400)

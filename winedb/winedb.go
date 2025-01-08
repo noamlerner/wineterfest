@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go/aws"
 	"log"
+	"strconv"
 	"wineterfest/datamodels"
 )
 
@@ -103,6 +104,7 @@ func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating
 	if err != nil {
 		return err
 	}
+
 	_, err = cl.CL.PutItem(ctx, &dynamodb.PutItemInput{
 		Item:      marshalMap,
 		TableName: aws.String(ratingsTableName),
@@ -124,6 +126,32 @@ func (cl *Client) CreateWine(ctx context.Context, w *datamodels.Wine) error {
 		},
 	})
 	return err
+}
+
+func (cl *Client) GetWine(ctx context.Context, num int) (*datamodels.Wine, error) {
+	// Define the GetItem input
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(winesTableName),
+		Key: map[string]types.AttributeValue{
+			wineNumberPropertyKey: &types.AttributeValueMemberN{Value: strconv.Itoa(num)},
+		},
+	}
+
+	// Fetch the item from the table
+	result, err := cl.CL.GetItem(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get item: %w", err)
+	}
+	if result == nil || result.Item == nil {
+		return nil, nil
+	}
+	var wine datamodels.Wine
+	if err := attributevalue.UnmarshalMap(result.Item, &wine); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
+	}
+
+	// If the Item is nil, the item does not exist
+	return &wine, nil
 }
 
 func (cl *Client) CreateUser(ctx context.Context, user string) error {
