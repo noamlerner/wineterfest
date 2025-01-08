@@ -10,33 +10,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #5e3370; /* Softer purple for improved readability */
-            color: #ffffff;
+            background-color: #f4f4f9; /* Soft off-white */
+            color: #333; /* Subtle dark gray for text */
             font-family: 'Roboto', sans-serif;
         }
 
         .card {
             border: none;
+            background-color: #ffffff;
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
         }
 
         .card-header {
-            background-color: #7a417d; /* Muted purple for header */
+            background-color: #4a90e2; /* Gentle blue for header */
             color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
         }
 
         .card-body {
-            background-color: #663366; /* Darker purple for body */
+            background-color: #ffffff;
+            color: #555;
+            padding: 2rem;
         }
 
         .btn-primary {
-            background-color: #a567a5; /* Lighter purple for buttons */
-            border-color: #a567a5;
+            background-color: #5cb85c; /* Green for call-to-action */
+            border-color: #5cb85c;
             color: #ffffff;
         }
 
         .btn-primary:hover {
-            background-color: #944d94; /* Slightly darker purple on hover */
-            border-color: #944d94;
+            background-color: #4cae4c; /* Darker green */
+            border-color: #4cae4c;
         }
 
         h1 {
@@ -44,21 +53,24 @@
             font-weight: bold;
         }
 
-        p, label {
+        label {
             font-family: 'Roboto', sans-serif;
             font-size: 1rem;
-            color: #e0e0e0; /* Light gray for text */
+            color: #555; /* Darker gray for text labels */
         }
 
         .form-control {
-            background-color: #f5f5f5; /* Light background for input */
+            background-color: #f9f9f9; /* Light background for input */
             border: 1px solid #ddd;
             color: #333;
+            font-size: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px; /* Rounded input fields */
         }
 
         .form-control:focus {
-            border-color: #7a417d;
-            box-shadow: 0 0 0 0.2rem rgba(122, 65, 125, 0.25);
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
         }
     </style>
 </head>
@@ -134,10 +146,15 @@
                 }),
             });
 
+            if (response.ok) {
+                alert('Wine registered successfully!');
+                window.location.href = '/home';
+            } else {
+                alert('Failed to register wine. Please try again.');
+            }
         } catch (error) {
-            alert(error)
+            alert('Error: ' + error.message);
         }
-        window.location.href = '/home';
     });
 </script>
 </body>
