@@ -64,7 +64,7 @@ func (s *RegisterWine) register(w http.ResponseWriter, r *http.Request) {
 
 	err = s.CL.CreateWine(r.Context(), &wineRegistration)
 	if err != nil {
-		http.Error(w, "User does not exist", 403)
+		http.Error(w, "Number already in use", 403)
 		return
 	}
 	http.Redirect(w, r, "/", 302)
