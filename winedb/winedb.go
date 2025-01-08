@@ -2,6 +2,7 @@ package winedb
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -34,6 +35,39 @@ func Conn() *Client {
 	svc := dynamodb.NewFromConfig(cfg)
 
 	return &Client{CL: svc}
+}
+
+func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamodels.WineRating, error) {
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(ratingsTableName),
+		KeyConditionExpression: aws.String("#pk = :pkValue"),
+		ExpressionAttributeNames: map[string]string{
+			"#pk": usernamePropertyKey,
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pkValue": &types.AttributeValueMemberS{Value: username},
+		},
+	}
+
+	// Execute the query
+	result, err := cl.CL.Query(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query items: %w", err)
+	}
+
+	// Unmarshal the result into a slice of WineRating
+	ratings := make([]datamodels.WineRating, 0, len(result.Items)-1)
+	for _, item := range result.Items {
+		var rating datamodels.WineRating
+		if err := attributevalue.UnmarshalMap(item, &rating); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal item: %w", err)
+		}
+		if rating.AnonymizedNumber == -1 {
+			continue
+		}
+		ratings = append(ratings, rating)
+	}
+	return ratings, nil
 }
 
 func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating) error {

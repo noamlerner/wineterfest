@@ -147,10 +147,10 @@
         window.location.href = '/my-wines';
     });
 
-    // Fetch wine ratings from the server
+    // Fetch wine ratings from the server with username
     async function fetchRatings() {
         try {
-            const response = await fetch('/my-ratings');
+            const response = await fetch(`/my-ratings?username=${encodeURIComponent(username)}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch ratings');
             }
@@ -161,9 +161,9 @@
             data.forEach(item => {
                 const listItem = document.createElement('li');
                 listItem.classList.add('list-group-item');
-                listItem.innerHTML = `Wine: <strong>${item.anonymizedNumber}</strong> <span>Rating: <strong>${item.rating}</strong></span>`;
+                listItem.innerHTML = `WineNumber: <strong>${item.anonymizedNumber}</strong> <span>Rating: <strong>${item.rating}</strong></span>`;
                 listItem.addEventListener('click', () => {
-                    alert(`You clicked on AnonymizedNumber: ${item.anonymizedNumber}`);
+                    alert(`You clicked on WineNumber: ${item.anonymizedNumber}`);
                 });
                 listContainer.appendChild(listItem);
             });

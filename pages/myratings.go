@@ -3,7 +3,6 @@ package pages
 import (
 	"encoding/json"
 	"net/http"
-	"wineterfest/datamodels"
 	"wineterfest/winedb"
 )
 
@@ -12,19 +11,10 @@ type MyRatings struct {
 }
 
 func (s *MyRatings) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	wineRatings := []*datamodels.WineRating{
-		{
-			AnonymizedNumber: 1,
-			Rating:           1,
-		},
-		{
-			AnonymizedNumber: 2,
-			Rating:           2,
-		},
-		{
-			AnonymizedNumber: 3,
-			Rating:           3,
-		},
+	username := r.URL.Query().Get("username")
+	wineRatings, err := s.CL.MyWineRatings(r.Context(), username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	// Set response header to indicate JSON content
 	w.Header().Set("Content-Type", "application/json")

@@ -35,7 +35,7 @@ func (s *RateWine) rateWine(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(string(all))
 	wineRating := datamodels.WineRating{}
-	err = json.NewDecoder(r.Body).Decode(&wineRating)
+	err = json.Unmarshal(all, &wineRating)
 	if err != nil {
 		http.Error(w, "Please send a request body", 400)
 	}
