@@ -191,8 +191,9 @@
                 `;
             } else {
                 listItem.innerHTML = `
-                    Wine Number: <strong>${item.anonymizedNumber || item.wineName}</strong>
-                    ${item.rating ? `<span>Rating: <strong>${item.rating}</strong></span>` : ''}
+                    <div><strong>Wine Number:</strong> ${item.anonymizedNumber}</div>
+                    <div><strong>Rating:</strong> ${item.rating}</div>
+                    <div><strong>Price Guess:</strong> $${item.priceGuess}</div>
                 `;
             }
 

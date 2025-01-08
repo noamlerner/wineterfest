@@ -1,9 +1,10 @@
 package datamodels
 
 type WineRating struct {
-	AnonymizedNumber int    `json:"anonymizedNumber"  dynamodbav:"n"`
-	Rating           int    `json:"rating"  dynamodbav:"wineRating"`
-	WineUser         string `json:"wineuser"  dynamodbav:"u"`
+	AnonymizedNumber int     `json:"anonymizedNumber"  dynamodbav:"n"`
+	Rating           int     `json:"rating"  dynamodbav:"wineRating"`
+	WineUser         string  `json:"wineuser"  dynamodbav:"u"`
+	PriceGuess       float64 `json:"priceGuess" dynamodbav:"price"`
 }
 
 type User struct {

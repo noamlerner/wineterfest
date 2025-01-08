@@ -94,6 +94,11 @@
                             <input type="number" class="form-control" id="rating" placeholder="Enter your rating"
                                    min="1" max="10" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="price-guess" class="form-label">Wine Price</label>
+                            <input type="number" step="0.01" class="form-control" id="price-guess"
+                                   placeholder="Guess the price" required>
+                        </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">Submit Rating</button>
                         </div>
@@ -111,6 +116,7 @@
         e.preventDefault();
         const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
         const rating = parseInt(document.getElementById('rating').value, 10);
+        const priceGuess = parseFloat(document.getElementById('price-guess').value);
 
         // Get the wineuser cookie
         const getCookie = (name) => {
@@ -130,7 +136,7 @@
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({anonymizedNumber, rating, wineuser}),
+            body: JSON.stringify({anonymizedNumber, rating, wineuser, priceGuess}),
         });
 
         if (response.ok) {
