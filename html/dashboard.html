@@ -10,37 +10,85 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #5e3370; /* Softer purple for improved readability */
-            color: #ffffff;
+            background-color: #f4f4f9; /* Soft off-white */
+            color: #333; /* Subtle dark gray for text */
             font-family: 'Roboto', sans-serif;
         }
         .card {
             border: none;
+            background-color: #ffffff;
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
         }
         .card-header {
-            background-color: #7a417d; /* Muted purple for header */
+            background-color: #4a90e2; /* Gentle blue for header */
             color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
         }
         .card-body {
-            background-color: #663366; /* Darker purple for body */
+            background-color: #ffffff;
+            color: #555;
+            padding: 2rem;
         }
         .btn-primary {
-            background-color: #a567a5; /* Lighter purple for buttons */
-            border-color: #a567a5;
+            background-color: #5cb85c; /* Green for call-to-action */
+            border-color: #5cb85c;
             color: #ffffff;
         }
         .btn-primary:hover {
-            background-color: #944d94; /* Slightly darker purple on hover */
-            border-color: #944d94;
+            background-color: #4cae4c; /* Darker green */
+            border-color: #4cae4c;
+        }
+        .btn-secondary {
+            background-color: #f0ad4e; /* Amber for secondary */
+            border-color: #f0ad4e;
+            color: #ffffff;
+        }
+        .btn-secondary:hover {
+            background-color: #ec971f;
+            border-color: #ec971f;
+        }
+        .btn-success {
+            background-color: #337ab7; /* Blue for success */
+            border-color: #337ab7;
+            color: #ffffff;
+        }
+        .btn-success:hover {
+            background-color: #286090;
+            border-color: #204d74;
         }
         h1 {
             font-family: 'Roboto', sans-serif;
             font-weight: bold;
         }
-        p, label {
+        p {
             font-family: 'Roboto', sans-serif;
-            font-size: 1rem;
-            color: #e0e0e0; /* Light gray for text */
+            font-size: 1.1rem;
+            color: #666;
+        }
+        .list-group-item {
+            background-color: #f9f9f9;
+            color: #333;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: 1.2rem;
+            padding: 1.5rem; /* Increased padding for larger height */
+            border-radius: 8px; /* Slightly rounded corners */
+            margin-bottom: 10px; /* Space between items */
+            display: flex;
+            justify-content: space-between; /* Align content horizontally */
+            align-items: center; /* Center content vertically */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        .list-group-item:hover {
+            background-color: #f1f1f1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+        }
+        .list-group-item:last-child {
+            border-bottom: none;
         }
     </style>
 </head>
@@ -57,6 +105,13 @@
                     <div class="d-grid gap-3">
                         <button id="register-wine" class="btn btn-primary btn-lg">Register Wine</button>
                         <button id="rate-wine" class="btn btn-secondary btn-lg">Rate Wine</button>
+                        <button id="my-wines" class="btn btn-success btn-lg">My Wines</button>
+                    </div>
+                    <div class="mt-5">
+                        <h2>Your Wine Ratings</h2>
+                        <ul id="wine-list" class="list-group">
+                            <li class="list-group-item">Loading...</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -87,6 +142,38 @@
     document.getElementById('rate-wine').addEventListener('click', function() {
         window.location.href = '/rate-wine';
     });
+
+    document.getElementById('my-wines').addEventListener('click', function() {
+        window.location.href = '/my-wines';
+    });
+
+    // Fetch wine ratings from the server
+    async function fetchRatings() {
+        try {
+            const response = await fetch('/my-ratings');
+            if (!response.ok) {
+                throw new Error('Failed to fetch ratings');
+            }
+            const data = await response.json();
+            const listContainer = document.getElementById('wine-list');
+            listContainer.innerHTML = '';
+
+            data.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('list-group-item');
+                listItem.innerHTML = `Wine: <strong>${item.anonymizedNumber}</strong> <span>Rating: <strong>${item.rating}</strong></span>`;
+                listItem.addEventListener('click', () => {
+                    alert(`You clicked on AnonymizedNumber: ${item.anonymizedNumber}`);
+                });
+                listContainer.appendChild(listItem);
+            });
+        } catch (error) {
+            console.error(error);
+            document.getElementById('wine-list').innerHTML = '<li class="list-group-item text-danger">Failed to load wine ratings</li>';
+        }
+    }
+
+    fetchRatings();
 </script>
 </body>
 </html>

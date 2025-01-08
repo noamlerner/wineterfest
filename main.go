@@ -15,6 +15,7 @@ func main() {
 	http.Handle("/dashboard", &pages.Dashboard{})
 	http.Handle("/register-wine", &pages.RegisterWine{cl})
 	http.Handle("/rate-wine", &pages.RateWine{cl})
+	http.Handle("/my-ratings", &pages.MyRatings{cl})
 	fmt.Println("Listening on port 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 
