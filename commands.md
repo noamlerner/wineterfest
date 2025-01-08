@@ -12,14 +12,16 @@ GOOS=linux GOARCH=amd64 go build -o main .
 
 Transfer filers:
 
+
 ```
+cd ~/dev 
 scp -i key.pem ~/GolandProjects/wineterfest/main ec2-user@ec2-18-144-90-118.us-west-1.compute.amazonaws.com:/home/ec2-user
 scp -i key.pem -r ~/GolandProjects/wineterfest/html ~/GolandProjects/wineterfest/main ec2-user@ec2-18-144-90-118.us-west-1.compute.amazonaws.com:/home/ec2-user
 ```
 
 Run New Binary
 
-first kill binary
+first kill binary and delete all the files.
 
 ```
 sudo lsof -i :8080
