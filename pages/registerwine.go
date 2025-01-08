@@ -41,16 +41,30 @@ func (s *RegisterWine) register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please send a request body", 400)
 	}
 
-	if wineRegistration.WineName == "" ||
-		wineRegistration.WinePrice < 0.0 || wineRegistration.WinePrice > 500 ||
-		wineRegistration.AnonymizedNumber < 0 || wineRegistration.AnonymizedNumber > 100 ||
-		len(wineRegistration.WineName) > 1000 {
-		http.Error(w, "Please send a request body", 400)
+	if wineRegistration.WineName == "" {
+		http.Error(w, "Wine must have a name!", 400)
+		return
+	}
+	if wineRegistration.WinePrice < 0.0 {
+		http.Error(w, "Wine must have a positive price!", 400)
+		return
+	}
+	if wineRegistration.WinePrice > 500 {
+		http.Error(w, "No chance you bought a wine that expensive.", 400)
+		return
+	}
+	if wineRegistration.AnonymizedNumber < 0 {
+		http.Error(w, "No anonymous wine has a negative number!", 400)
+		return
+	}
+	if len(wineRegistration.WineName) > 1000 {
+		http.Error(w, "Wine must have a maximum length of 1000!", 400)
+		return
 	}
 
 	err = s.CL.CreateWine(r.Context(), &wineRegistration)
 	if err != nil {
-		http.Error(w, "Please send a request body", 400)
+		http.Error(w, "User does not exist", 403)
 		return
 	}
 	http.Redirect(w, r, "/", 302)

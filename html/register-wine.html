@@ -150,7 +150,8 @@
                 alert('Wine registered successfully!');
                 window.location.href = '/home';
             } else {
-                alert('Failed to register wine. Please try again.');
+                const errorMessage = await response.text(); // Parse the response text
+                alert(`Error: ${errorMessage}`); // Display the error message in the alert
             }
         } catch (error) {
             alert('Error: ' + error.message);
