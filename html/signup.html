@@ -107,8 +107,7 @@
                 // Set the cookie only if the response is successful
                 const expirationDate = new Date();
                 expirationDate.setTime(expirationDate.getTime() + (24 * 60 * 60 * 1000)); // 24 hours from now
-                document.cookie = "wineuser=" + encodeURIComponent(username) + "; path=/; expires=" + expirationDate.toUTCString() + ";";
-                alert('Sign-up successful! Welcome, ' + username + '!');
+                document.cookie = "wineuserc=" + encodeURIComponent(username) + "; path=/; expires=" + expirationDate.toUTCString() + ";";
                 window.location.href = "/dashboard"; // Redirect to dashboard
             } else {
                 const error = await response.json();

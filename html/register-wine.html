@@ -124,7 +124,7 @@
             const cookie = cookies.find(row => row.startsWith(`${name}=`));
             return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
         };
-        const username = getCookie('wineuser');
+        const username = getCookie('wineuserc');
 
         if (!username) {
             alert('Error: User not logged in.');
@@ -147,7 +147,6 @@
             });
 
             if (response.ok) {
-                alert('Wine registered successfully!');
                 window.location.href = '/home';
             } else {
                 const errorMessage = await response.text(); // Parse the response text

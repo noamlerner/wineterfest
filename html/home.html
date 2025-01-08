@@ -15,7 +15,7 @@
         return cookie ? cookie.split('=')[1] : null;
       }
 
-      const userCookie = getCookie('wineuser');
+      const userCookie = getCookie('wineuserc');
       if (userCookie) {
         window.location.href = '/dashboard';
       } else {

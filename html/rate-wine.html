@@ -118,7 +118,7 @@
             const cookie = cookies.find(row => row.startsWith(`${name}=`));
             return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
         };
-        const wineuser = getCookie('wineuser');
+        const wineuser = getCookie('wineuserc');
 
         if (!wineuser) {
             alert('Error: User not logged in.');
