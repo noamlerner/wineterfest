@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Include Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background-color: #f4f4f9; /* Soft off-white */
@@ -62,6 +63,11 @@
     th {
       background-color: #f2f2f2;
     }
+    .chart-container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+    }
   </style>
 </head>
 <body>
@@ -105,43 +111,94 @@
     const statDiv = document.createElement('div');
     statDiv.classList.add('stat-container', 'active');
 
-    statDiv.innerHTML = `
-            <div class="card">
-                <h2>${statData.title}</h2>
-                <p>${statData.description}</p>
-                <button class="btn btn-reveal" onclick="revealDetails(${index})">Reveal Details</button>
-                <div id="details-${index}" class="hidden">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                ${statData.table[0].map(header => `<th>${header}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${statData.table.slice(1).map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
-                        </tbody>
-                    </table>
+    let graphContent = '';
+    if (statData.graphData && Array.isArray(statData.graphData)) {
+      const labels = statData.graphData.map(point => point[0]);
+      const values = statData.graphData.map(point => point[1]);
+
+      graphContent = `
+                <div class="chart-container">
+                    <canvas id="chart-${index}"></canvas>
                 </div>
-            </div>
-            <button class="btn btn-next" onclick="nextStat()">Next</button>
-        `;
+                <script>
+                    const ctx = document.getElementById('chart-${index}').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ${JSON.stringify(labels)},
+                            datasets: [{
+                                label: '${statData.title}',
+                                data: ${JSON.stringify(values)},
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                tension: 0.1,
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: true
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'X'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Y'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                </script>
+`;
+}
 
-    container.appendChild(statDiv);
-  }
+statDiv.innerHTML = `
+<div class="card">
+  <h2>${statData.title}</h2>
+  <p>${statData.description}</p>
+  ${graphContent}
+  <button class="btn btn-reveal" onclick="revealDetails(${index})">Reveal Details</button>
+  <div id="details-${index}" class="hidden">
+    <table class="table table-bordered">
+      <thead>
+      <tr>
+        ${statData.table[0].map(header => `<th>${header}</th>`).join('')}
+      </tr>
+      </thead>
+      <tbody>
+      ${statData.table.slice(1).map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+</div>
+<button class="btn btn-next" onclick="nextStat()">Next</button>
+`;
 
-  function revealDetails(index) {
-    const details = document.getElementById(`details-${index}`);
-    if (details) {
-      details.classList.remove('hidden');
-    }
-  }
+container.appendChild(statDiv);
+}
 
-  function nextStat() {
-    statsIndex = (statsIndex + 1) % stats.length;
-    displayStat(statsIndex);
-  }
+function revealDetails(index) {
+const details = document.getElementById(`details-${index}`);
+if (details) {
+details.classList.remove('hidden');
+}
+}
 
-  document.addEventListener('DOMContentLoaded', fetchStats);
+function nextStat() {
+statsIndex = (statsIndex + 1) % stats.length;
+displayStat(statsIndex);
+}
+
+document.addEventListener('DOMContentLoaded', fetchStats);
 </script>
 </body>
 </html>

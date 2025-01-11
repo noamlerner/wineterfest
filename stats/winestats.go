@@ -23,6 +23,7 @@ type JsonStats struct {
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
 	Table       [][]string `json:"table"`
+	GraphData   [][]int    `json:"graphData"`
 }
 
 func Calc(allWines []datamodels.Wine, allRatings []datamodels.WineRating) []JsonStats {
@@ -207,16 +208,20 @@ func trueToTheCrowd(wineRankings []CrowdWineRating, ratingsByUser map[string][]d
 		})
 	}
 
-	stat.Table = make([][]string, 0, len(wineRankings)+1)
+	stat.Table = make([][]string, 0, len(ratingsByUser)+1)
 	stat.Table = append(stat.Table, []string{
 		"Name", "Wine Rating Correlation", "Number of Ratings",
 	})
+	stat.GraphData = make([][]int, 0, len(ratingsByUser))
 	sortFloat(correlations)
-	for _, correlation := range correlations {
+	for i, correlation := range correlations {
 		stat.Table = append(stat.Table, []string{
 			correlation.Name,
 			fmt.Sprintf("%d", int(correlation.FloatValue*100)),
 			fmt.Sprintf("%d", correlation.IntValue),
+		})
+		stat.GraphData = append(stat.GraphData, []int{
+			i, int(correlation.FloatValue),
 		})
 	}
 	return stat
