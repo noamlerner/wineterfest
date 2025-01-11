@@ -181,7 +181,7 @@ func (s *Stats) ToJson() []JsonStats {
 	ratedTheMost := JsonStats{
 		Title:       "Rated The Most Wines",
 		Description: "User with the highest number of wine ratings (the drunkest?):",
-		Items:       []string{fmt.Sprintf("%s: %d ratings", s.RatedTheMostWines.Name, s.RatedTheMostWines.Value)},
+		Items:       []string{fmt.Sprintf("Number of Wines Rated: %d", int(s.RatedTheMostWines.Value))},
 	}
 	for _, user := range s.RatedTheMostWines.Name {
 		ratedTheMost.Items = append(ratedTheMost.Items, user)
@@ -204,7 +204,9 @@ func (s *Stats) ToJson() []JsonStats {
 		Description: "Which wines did we like best?",
 	}
 	for _, stat := range s.WineRanking {
-		wineRanking.Items = append(wineRanking.Items, fmt.Sprintf("%s: %.2f stars", stat.Name, stat.Value))
+		wine := stat.Name
+		st := fmt.Sprintf("%s (%d) Rated %.2f Cost $%.2f\nBrought by %s", wine.WineName, wine.AnonymizedNumber, stat.Value, wine.WinePrice, wine.Username)
+		wineRanking.Items = append(wineRanking.Items, st)
 	}
 	jsonStats = append(jsonStats, wineRanking)
 
@@ -214,7 +216,9 @@ func (s *Stats) ToJson() []JsonStats {
 		Description: "Average Rating/ Price",
 	}
 	for _, stat := range s.WineValue {
-		wineValue.Items = append(wineValue.Items, fmt.Sprintf("%s: %.2f points", stat.Name, stat.Value))
+		wine := stat.Name
+		st := fmt.Sprintf("%s (%d) CostWeightedRating %.2f Cost $%.2f\nBrought by %s", wine.WineName, wine.AnonymizedNumber, stat.Value, wine.WinePrice, wine.Username)
+		wineValue.Items = append(wineValue.Items, st)
 	}
 	jsonStats = append(jsonStats, wineValue)
 
