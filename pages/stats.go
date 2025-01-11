@@ -20,7 +20,7 @@ func (s *Stats) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	st := stats.Calc(allWines, allRatings).ToJson()
+	st := stats.Calc(allWines, allRatings)
 	// Marshal the data and write it to the response
 	if err := json.NewEncoder(w).Encode(st); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)

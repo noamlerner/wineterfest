@@ -9,20 +9,9 @@ import (
 )
 
 type Stat[T any] struct {
-	Name   T
-	Value  float64
-	Value2 int
-}
-
-type Stats struct {
-	// User -> Average Wine Rating
-	AverageWineRatings []Stat[string]
-	// WineName -> Average Rating
-	WineRanking []Stat[datamodels.Wine]
-	// WineName -> Value
-	WineValue []Stat[datamodels.Wine]
-	// User -> PriceGuessCorrelation
-	PriceGuessingCorrelations []Stat[string]
+	Name       T
+	FloatValue float64
+	IntValue   int
 }
 type JsonStats struct {
 	Title       string     `json:"title"`
@@ -30,8 +19,7 @@ type JsonStats struct {
 	Table       [][]string `json:"table"`
 }
 
-func Calc(allWines []datamodels.Wine, allRatings []datamodels.WineRating) *Stats {
-	s := &Stats{}
+func Calc(allWines []datamodels.Wine, allRatings []datamodels.WineRating) []JsonStats {
 
 	ratingsByUser := make(map[string][]datamodels.WineRating)
 	ratingsByWine := make(map[int][]datamodels.WineRating)
@@ -46,14 +34,27 @@ func Calc(allWines []datamodels.Wine, allRatings []datamodels.WineRating) *Stats
 	for _, wine := range allWines {
 		numToWine[wine.AnonymizedNumber] = wine
 	}
+	s := []JsonStats{}
 
-	averageRatings(ratingsByUser, s)
-	wineAverages(s, ratingsByWine, numToWine)
-	userCorrelationCoefficient(s, ratingsByUser, numToWine)
+	s = ap(s, averageRatings(ratingsByUser))
+	s = ap(s, bestWine(ratingsByWine, numToWine))
+	s = ap(s, topValueWine(ratingsByWine, numToWine))
+	s = ap(s, userCorrelationCoefficient(ratingsByUser, numToWine))
 	return s
 }
 
-func averageRatings(ratingsByUser map[string][]datamodels.WineRating, s *Stats) {
+func ap(s []JsonStats, stats ...JsonStats) []JsonStats {
+	return append(s, stats...)
+}
+
+func averageRatings(ratingsByUser map[string][]datamodels.WineRating) JsonStats {
+	stat := JsonStats{
+		Title:       "Average Wine Ratings by Users",
+		Description: "Are you a generous rater?",
+		Table:       make([][]string, 0, len(ratingsByUser)+1),
+	}
+	stat.Table = append(stat.Table, []string{"User", "Number of Ratings", "Average Rating"})
+
 	averageRatingsPerUser := make([]Stat[string], 0, len(ratingsByUser))
 	for user, ratings := range ratingsByUser {
 		if len(ratings) == 0 {
@@ -63,21 +64,34 @@ func averageRatings(ratingsByUser map[string][]datamodels.WineRating, s *Stats) 
 		for _, rating := range ratings {
 			sum += float64(rating.Rating)
 		}
+
 		averageRatingsPerUser = append(averageRatingsPerUser, Stat[string]{
-			Name:   user,
-			Value:  sum / float64(len(ratingsByUser[user])),
-			Value2: len(ratingsByUser[user]),
+			Name: user,
+			// Number of Ratings
+			IntValue: len(ratingsByUser[user]),
+			// Average Rating
+			FloatValue: sum / float64(len(ratingsByUser[user])),
 		})
 	}
-	s.AverageWineRatings = averageRatingsPerUser
-	sort.Slice(s.AverageWineRatings, func(i, j int) bool {
-		return s.AverageWineRatings[i].Value2 > s.AverageWineRatings[j].Value2
-	})
+	sortInt(averageRatingsPerUser)
+	for _, user := range averageRatingsPerUser {
+		stat.Table = append(stat.Table, []string{
+			user.Name,
+			fmt.Sprintf("%d", user.IntValue),
+			fmt.Sprintf("%f", user.FloatValue),
+		})
+	}
+	return stat
 }
 
-func wineAverages(s *Stats, ratingsByWine map[int][]datamodels.WineRating, numToWine map[int]datamodels.Wine) {
+func bestWine(ratingsByWine map[int][]datamodels.WineRating, numToWine map[int]datamodels.Wine) JsonStats {
+	stat := JsonStats{
+		Title:       "Best Wine",
+		Description: "Wine rankings",
+	}
+
 	wineRankings := make([]Stat[datamodels.Wine], 0, len(ratingsByWine))
-	wineValues := make([]Stat[datamodels.Wine], 0, len(ratingsByWine))
+
 	for num, ratings := range ratingsByWine {
 		if numToWine[num].WinePrice == 0.0 {
 			continue
@@ -87,24 +101,77 @@ func wineAverages(s *Stats, ratingsByWine map[int][]datamodels.WineRating, numTo
 			sum += float64(rating.Rating)
 		}
 		wineRankings = append(wineRankings, Stat[datamodels.Wine]{
-			Name:   numToWine[num],
-			Value:  sum / float64(len(ratingsByWine[num])),
-			Value2: len(ratingsByWine[num]),
-		})
-		wineValues = append(wineValues, Stat[datamodels.Wine]{
-			Name:   numToWine[num],
-			Value:  sum * sum / numToWine[num].WinePrice,
-			Value2: len(ratingsByWine[num]),
+			Name:       numToWine[num],
+			FloatValue: sum / float64(len(ratingsByWine[num])),
+			IntValue:   len(ratingsByWine[num]),
 		})
 	}
-	sortSlice(wineRankings)
-	s.WineRanking = wineRankings
+	sortFloat(wineRankings)
 
-	sortSlice(wineValues)
-	s.WineValue = wineValues
+	stat.Table = make([][]string, 0, len(ratingsByWine)+1)
+	stat.Table = append(stat.Table, []string{
+		"Wine #", "Wine Name", "Rated", "# of Ratings", "Cost", "Brought By",
+	})
+	for _, wine := range wineRankings {
+		stat.Table = append(stat.Table, []string{
+			strconv.Itoa(wine.Name.AnonymizedNumber),
+			wine.Name.WineName,
+			fmt.Sprintf("%.2f", wine.FloatValue),
+			strconv.Itoa(wine.IntValue),
+			fmt.Sprintf("$%.2f", wine.Name.WinePrice),
+			wine.Name.Username,
+		})
+	}
+	return stat
 }
 
-func userCorrelationCoefficient(s *Stats, ratingsByUser map[string][]datamodels.WineRating, numToWine map[int]datamodels.Wine) {
+func topValueWine(ratingsByWine map[int][]datamodels.WineRating, numToWine map[int]datamodels.Wine) JsonStats {
+	stat := JsonStats{
+		Title:       "Top Value",
+		Description: "Best Bang for you Buck",
+	}
+
+	wineRankings := make([]Stat[datamodels.Wine], 0, len(ratingsByWine))
+
+	for num, ratings := range ratingsByWine {
+		if numToWine[num].WinePrice == 0.0 {
+			continue
+		}
+		sum := 0.0
+		for _, rating := range ratings {
+			sum += float64(rating.Rating)
+		}
+		wineRankings = append(wineRankings, Stat[datamodels.Wine]{
+			Name:       numToWine[num],
+			FloatValue: math.Pow(sum, 4) / numToWine[num].WinePrice,
+			IntValue:   len(ratingsByWine[num]),
+		})
+	}
+	sortFloat(wineRankings)
+
+	stat.Table = make([][]string, 0, len(ratingsByWine)+1)
+	stat.Table = append(stat.Table, []string{
+		"Wine #", "Wine Name", "Value Score", "#Ratings", "Cost", "Brought By",
+	})
+	for _, wine := range wineRankings {
+		stat.Table = append(stat.Table, []string{
+			strconv.Itoa(wine.Name.AnonymizedNumber),
+			wine.Name.WineName,
+			fmt.Sprintf("%.2f", wine.FloatValue),
+			strconv.Itoa(wine.IntValue),
+			fmt.Sprintf("$%.2f", wine.Name.WinePrice),
+			wine.Name.Username,
+		})
+	}
+	return stat
+}
+
+func userCorrelationCoefficient(ratingsByUser map[string][]datamodels.WineRating, numToWine map[int]datamodels.Wine) JsonStats {
+	stat := JsonStats{
+		Title:       "Price Guessing Correlation",
+		Description: "How do your taste buds stack up?",
+	}
+
 	correlations := make([]Stat[string], 0, len(ratingsByUser))
 	for user, ratings := range ratingsByUser {
 		guesses := make([]float64, 0, len(ratings))
@@ -118,22 +185,42 @@ func userCorrelationCoefficient(s *Stats, ratingsByUser map[string][]datamodels.
 			continue
 		}
 		correlations = append(correlations, Stat[string]{
-			Name:   user,
-			Value:  *correlation,
-			Value2: len(ratingsByUser[user]),
+			Name:       user,
+			FloatValue: *correlation,
+			IntValue:   len(ratingsByUser[user]),
 		})
 	}
-	sortSlice(correlations)
+	sortFloat(correlations)
 
-	s.PriceGuessingCorrelations = correlations
+	stat.Table = make([][]string, 0, len(correlations)+1)
+	stat.Table = append(stat.Table, []string{
+		"Name", "Price Guessing Correlation", "Number Of Guesses",
+	})
+	for _, correlation := range correlations {
+		stat.Table = append(stat.Table, []string{
+			correlation.Name,
+			fmt.Sprintf("%.2f", correlation.FloatValue),
+			fmt.Sprintf("%d", correlation.IntValue),
+		})
+	}
+	return stat
 }
 
-func sortSlice[T any](sli []Stat[T]) {
+func sortFloat[T any](sli []Stat[T]) {
 	sort.Slice(sli, func(i, j int) bool {
-		if sli[i].Value == sli[j].Value {
-			return sli[i].Value2 > sli[j].Value2
+		if sli[i].FloatValue == sli[j].FloatValue {
+			return sli[i].IntValue > sli[j].IntValue
 		}
-		return sli[i].Value > sli[j].Value
+		return sli[i].FloatValue > sli[j].FloatValue
+	})
+}
+
+func sortInt[T any](sli []Stat[T]) {
+	sort.Slice(sli, func(i, j int) bool {
+		if sli[i].IntValue == sli[j].IntValue {
+			return sli[i].FloatValue > sli[j].FloatValue
+		}
+		return sli[i].IntValue > sli[j].IntValue
 	})
 }
 
@@ -169,86 +256,4 @@ func mean(data []float64) float64 {
 		sum += value
 	}
 	return sum / float64(len(data))
-}
-
-func (s *Stats) ToJson() []JsonStats {
-	var jsonStats []JsonStats
-
-	// Convert AverageWineRatings
-	averageRatings := JsonStats{
-		Title:       "Average Wine Ratings by Users",
-		Description: "Are you a generous rater?",
-		Table: [][]string{
-			{"User", "Number of Ratings", "Average Rating"},
-		},
-	}
-	for _, stat := range s.AverageWineRatings {
-		averageRatings.Table = append(averageRatings.Table, []string{
-			stat.Name,
-			strconv.Itoa(stat.Value2),
-			fmt.Sprintf("%.2f", stat.Value),
-		})
-	}
-	jsonStats = append(jsonStats, averageRatings)
-
-	// Convert WineRanking
-	wineRanking := JsonStats{
-		Title:       "Wine Rankings",
-		Description: "Which wines did we like best?",
-		Table: [][]string{
-			{"Wine #", "Wine Name", "Rated", "# of Ratings", "Cost", "Brought By"},
-		},
-	}
-	for _, stat := range s.WineRanking {
-		wineRanking.Table = append(wineRanking.Table, []string{
-			strconv.Itoa(stat.Name.AnonymizedNumber),
-			stat.Name.WineName,
-			fmt.Sprintf("%.2f", stat.Value),
-			strconv.Itoa(stat.Value2),
-			fmt.Sprintf("$%.2f", stat.Name.WinePrice),
-			stat.Name.Username,
-		})
-	}
-	jsonStats = append(jsonStats, wineRanking)
-
-	// Convert WineValue
-	wineValue := JsonStats{
-		Title:       "Best Bang for you Buck",
-		Description: "Average Rating/ Price",
-		Table: [][]string{
-			{"Wine #", "Wine Name", "Value Score", "#Ratings", "Cost", "Brought By"},
-		},
-	}
-	for _, stat := range s.WineValue {
-		wineValue.Table = append(wineValue.Table, []string{
-			strconv.Itoa(stat.Name.AnonymizedNumber),
-			stat.Name.WineName,
-			fmt.Sprintf("%.2f", stat.Value),
-			strconv.Itoa(int(stat.Value2)),
-			fmt.Sprintf("$%.2f", stat.Name.WinePrice),
-			stat.Name.Username,
-		})
-	}
-	jsonStats = append(jsonStats, wineValue)
-
-	// Convert PriceGuessingCorrelations
-	priceGuessing := JsonStats{
-		Title:       "Price Guessing Correlation",
-		Description: "How do your taste buds stack up?",
-		Table: [][]string{
-			{
-				"Name", "Price Guessing Correlation", "Number Of Guesses",
-			},
-		},
-	}
-	for _, stat := range s.PriceGuessingCorrelations {
-		priceGuessing.Table = append(priceGuessing.Table, []string{
-			stat.Name,
-			fmt.Sprintf("%.2f", stat.Value),
-			fmt.Sprintf("%d", stat.Value2),
-		})
-	}
-	jsonStats = append(jsonStats, priceGuessing)
-
-	return jsonStats
 }
