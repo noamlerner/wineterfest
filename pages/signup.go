@@ -49,7 +49,7 @@ func (s *Signup) signUp(w http.ResponseWriter, r *http.Request) {
 
 	err = s.CL.CreateUser(r.Context(), req.Username)
 	if err != nil {
-		http.Error(w, "Please send a request body", 400)
+		http.Error(w, "Could not create user, try a different name", 400)
 		return
 	}
 

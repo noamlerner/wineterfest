@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"log"
 	"strconv"
+	"strings"
 	"wineterfest/datamodels"
 )
 
@@ -46,7 +47,7 @@ func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamod
 			"#pk": usernamePropertyKey,
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pkValue": &types.AttributeValueMemberS{Value: username},
+			":pkValue": &types.AttributeValueMemberS{Value: strings.ToLower(username)},
 		},
 	}
 
@@ -66,6 +67,7 @@ func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamod
 		if rating.AnonymizedNumber == -1 {
 			continue
 		}
+		rating.WineUser = strings.Title(rating.WineUser)
 		ratings = append(ratings, rating)
 	}
 	return ratings, nil
@@ -93,6 +95,7 @@ func (cl *Client) AllWines(ctx context.Context) ([]datamodels.Wine, error) {
 				return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 			}
 			allItems = append(allItems, wine)
+			wine.Username = strings.Title(wine.Username)
 		}
 	}
 
@@ -120,6 +123,7 @@ func (cl *Client) AllRatings(ctx context.Context) ([]datamodels.WineRating, erro
 			if err := attributevalue.UnmarshalMap(item, &wine); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 			}
+			wine.WineUser = strings.Title(wine.WineUser)
 			allItems = append(allItems, wine)
 		}
 	}
@@ -128,6 +132,7 @@ func (cl *Client) AllRatings(ctx context.Context) ([]datamodels.WineRating, erro
 }
 
 func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating) error {
+	w.WineUser = strings.ToLower(w.WineUser)
 	marshalMap, err := attributevalue.MarshalMap(w)
 	if err != nil {
 		return err
@@ -141,6 +146,7 @@ func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating
 }
 
 func (cl *Client) CreateWine(ctx context.Context, w *datamodels.Wine) error {
+	w.Username = strings.ToLower(w.Username)
 	marshalMap, err := attributevalue.MarshalMap(w)
 	if err != nil {
 		return err
@@ -186,7 +192,7 @@ func (cl *Client) CreateUser(ctx context.Context, user string) error {
 	_, err := cl.CL.PutItem(ctx, &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
 			usernamePropertyKey: &types.AttributeValueMemberS{
-				Value: user,
+				Value: strings.ToLower(user),
 			},
 			wineNumberPropertyKey: &types.AttributeValueMemberN{
 				Value: "-1",
@@ -199,4 +205,29 @@ func (cl *Client) CreateUser(ctx context.Context, user string) error {
 		},
 	})
 	return err
+}
+
+func (cl *Client) UserExists(ctx context.Context, user string) bool {
+	// Define the GetItem input
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(ratingsTableName),
+		Key: map[string]types.AttributeValue{
+			usernamePropertyKey: &types.AttributeValueMemberS{
+				Value: strings.ToLower(user),
+			},
+			wineNumberPropertyKey: &types.AttributeValueMemberN{
+				Value: "-1",
+			},
+		},
+	}
+
+	// Fetch the item from the table
+	result, err := cl.CL.GetItem(ctx, input)
+	if err != nil {
+		return false
+	}
+	if result == nil || result.Item == nil {
+		return false
+	}
+	return true
 }

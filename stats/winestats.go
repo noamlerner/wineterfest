@@ -305,7 +305,8 @@ func calculateCorrelation(guesses, actualPrices []float64) *float64 {
 
 	// Calculate Pearson correlation
 	if varianceGuess == 0 || varianceActual == 0 {
-		return nil
+		f := 1.0
+		return &f
 	}
 	f := covariance / math.Sqrt(varianceGuess*varianceActual)
 	return &f
