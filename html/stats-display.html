@@ -47,7 +47,20 @@
       box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
       padding: 20px;
       width: 90%;
-      max-width: 500px;
+      max-width: 800px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center; /* Center align text in table cells */
+    }
+    th {
+      background-color: #f2f2f2;
     }
   </style>
 </head>
@@ -98,9 +111,16 @@
                 <p>${statData.description}</p>
                 <button class="btn btn-reveal" onclick="revealDetails(${index})">Reveal Details</button>
                 <div id="details-${index}" class="hidden">
-                    <ul class="list-group mt-3">
-                        ${statData.items.map(item => `<li class="list-group-item">${item}</li>`).join('')}
-                    </ul>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                ${statData.table[0].map(header => `<th>${header}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${statData.table.slice(1).map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <button class="btn btn-next" onclick="nextStat()">Next</button>
