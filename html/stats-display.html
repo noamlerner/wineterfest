@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stats Showcase</title>
+  <!-- Include Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Include Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f9; /* Soft off-white */
+      color: #333; /* Subtle dark gray for text */
+      font-family: 'Roboto', sans-serif;
+    }
+    .stat-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+      opacity: 0;
+    }
+    .stat-container.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hidden {
+      display: none;
+    }
+    .btn-next, .btn-reveal {
+      margin-top: 20px;
+      background-color: #5cb85c;
+      color: white;
+      border: none;
+    }
+    .btn-next:hover, .btn-reveal:hover {
+      background-color: #4cae4c;
+    }
+    .card {
+      border: none;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+    }
+  </style>
+</head>
+<body>
+<div id="stats-container" class="container text-center">
+  <div id="loader" class="stat-container active">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Include Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  let statsIndex = 0;
+  let stats = [];
+
+  async function fetchStats() {
+    try {
+      const response = await fetch('/stats');
+      if (!response.ok) throw new Error('Failed to fetch stats');
+      stats = await response.json();
+      displayStat(statsIndex);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      document.getElementById('stats-container').innerHTML = '<div class="text-danger">Failed to load stats</div>';
+    }
+  }
+
+  function displayStat(index) {
+    const container = document.getElementById('stats-container');
+    container.innerHTML = '';
+
+    if (stats.length === 0) {
+      container.innerHTML = '<div class="text-danger">No stats available</div>';
+      return;
+    }
+
+    const statData = stats[index];
+
+    const statDiv = document.createElement('div');
+    statDiv.classList.add('stat-container', 'active');
+
+    statDiv.innerHTML = `
+            <div class="card">
+                <h2>${statData.title}</h2>
+                <p>${statData.description}</p>
+                <button class="btn btn-reveal" onclick="revealDetails(${index})">Reveal Details</button>
+                <div id="details-${index}" class="hidden">
+                    <ul class="list-group mt-3">
+                        ${statData.items.map(item => `<li class="list-group-item">${item}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+            <button class="btn btn-next" onclick="nextStat()">Next</button>
+        `;
+
+    container.appendChild(statDiv);
+  }
+
+  function revealDetails(index) {
+    const details = document.getElementById(`details-${index}`);
+    if (details) {
+      details.classList.remove('hidden');
+    }
+  }
+
+  function nextStat() {
+    statsIndex = (statsIndex + 1) % stats.length;
+    displayStat(statsIndex);
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchStats);
+</script>
+</body>
+</html>

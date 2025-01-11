@@ -23,6 +23,11 @@ type Stats struct {
 	// User -> PriceGuessCorrelation
 	PriceGuessingCorrelations []Stat[string]
 }
+type JsonStats struct {
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Items       []string `json:"items"`
+}
 
 func Calc(allWines []*datamodels.Wine, allRatings []*datamodels.WineRating) {
 	s := &Stats{}
