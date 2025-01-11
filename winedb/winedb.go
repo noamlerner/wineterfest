@@ -57,7 +57,7 @@ func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamod
 	}
 
 	// Unmarshal the result into a slice of WineRating
-	ratings := make([]datamodels.WineRating, 0, len(result.Items)-1)
+	ratings := make([]datamodels.WineRating, 0, len(result.Items))
 	for _, item := range result.Items {
 		var rating datamodels.WineRating
 		if err := attributevalue.UnmarshalMap(item, &rating); err != nil {

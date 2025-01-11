@@ -11,14 +11,15 @@ import (
 func main() {
 	cl := winedb.Conn()
 	http.Handle("/", &pages.Home{})
-	http.Handle("/signup", &pages.Signup{cl})
+	http.Handle("/signup", &pages.SignIn{cl})
 	http.Handle("/dashboard", &pages.Dashboard{})
 	http.Handle("/register-wine", &pages.RegisterWine{cl})
 	http.Handle("/rate-wine", &pages.RateWine{cl})
 	http.Handle("/my-ratings", &pages.MyRatings{cl})
 	http.Handle("/my-wines", &pages.MyWines{cl})
 	http.Handle("/stats-display", &pages.StatsDisplay{})
-	http.Handle("/stats", &pages.Stats{})
+	http.Handle("/stats", &pages.Stats{cl})
+	http.Handle("/signin", &pages.SignIn{})
 	fmt.Println("Listening on port 8080!")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 

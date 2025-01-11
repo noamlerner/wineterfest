@@ -14,7 +14,7 @@ type Stat[T any] struct {
 
 type Stats struct {
 	// User -> Number of Ratings
-	RatedTheMostWines Stat[string]
+	RatedTheMostWines Stat[[]string]
 	// User -> Average Wine Rating
 	AverageWineRatings []Stat[string]
 	// WineName -> Average Rating
@@ -104,11 +104,13 @@ func wineAverages(s *Stats, ratingsByWine map[int][]datamodels.WineRating, numTo
 }
 
 func ratedTheMostWines(s *Stats, ratingsByUser map[string][]datamodels.WineRating) {
-	stat := Stat[string]{}
+	stat := Stat[[]string]{}
 	for user, ratings := range ratingsByUser {
 		if len(ratings) > int(stat.Value) {
-			stat.Name = user
+			stat.Name = []string{user}
 			stat.Value = float64(len(ratings))
+		} else if len(ratings) == int(stat.Value) {
+			stat.Name = append(stat.Name, user)
 		}
 	}
 	s.RatedTheMostWines = stat
@@ -176,12 +178,15 @@ func mean(data []float64) float64 {
 func (s *Stats) ToJson() []JsonStats {
 	var jsonStats []JsonStats
 
-	// Convert RatedTheMostWines
-	jsonStats = append(jsonStats, JsonStats{
+	ratedTheMost := JsonStats{
 		Title:       "Rated The Most Wines",
 		Description: "User with the highest number of wine ratings (the drunkest?):",
 		Items:       []string{fmt.Sprintf("%s: %d ratings", s.RatedTheMostWines.Name, s.RatedTheMostWines.Value)},
-	})
+	}
+	for _, user := range s.RatedTheMostWines.Name {
+		ratedTheMost.Items = append(ratedTheMost.Items, user)
+	}
+	jsonStats = append(jsonStats, ratedTheMost)
 
 	// Convert AverageWineRatings
 	averageRatings := JsonStats{
