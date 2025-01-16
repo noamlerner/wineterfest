@@ -194,9 +194,10 @@ func topValueWine(wineRankings []CrowdWineRating) JsonStats {
 		if rating.Wine.WinePrice == 0.0 {
 			continue
 		}
+
 		value = append(value, Stat[*datamodels.Wine]{
 			Name:       rating.Wine,
-			FloatValue: math.Pow(rating.Rating, 4) / rating.Wine.WinePrice,
+			FloatValue: math.Pow(math.E, rating.Rating) / rating.Wine.WinePrice,
 			IntValue:   rating.NumRatings,
 		})
 	}
