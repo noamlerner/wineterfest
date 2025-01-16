@@ -34,11 +34,12 @@ func (s *RateWine) rateWine(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(string(all))
-	wineRating := datamodels.WineRating{}
-	err = json.Unmarshal(all, &wineRating)
+	wineRating := &datamodels.WineRating{}
+	err = json.Unmarshal(all, wineRating)
 	if err != nil {
 		http.Error(w, "Please send a request body", 400)
 	}
+	wineRating.Normalize()
 
 	wine, err := s.CL.GetWine(r.Context(), wineRating.AnonymizedNumber)
 	if wine == nil {
@@ -46,9 +47,8 @@ func (s *RateWine) rateWine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.CL.CreateWineRating(r.Context(), &wineRating)
+	err = s.CL.CreateWineRating(r.Context(), wineRating)
 	if err != nil {
 		http.Error(w, "Please send a request body", 400)
 	}
-
 }

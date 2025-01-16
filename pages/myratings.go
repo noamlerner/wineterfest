@@ -3,6 +3,7 @@ package pages
 import (
 	"encoding/json"
 	"net/http"
+	"wineterfest/datamodels"
 	"wineterfest/winedb"
 )
 
@@ -12,7 +13,7 @@ type MyRatings struct {
 
 func (s *MyRatings) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
-	wineRatings, err := s.CL.MyWineRatings(r.Context(), username)
+	wineRatings, err := s.CL.MyWineRatings(r.Context(), (&datamodels.User{username}).Normalize())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

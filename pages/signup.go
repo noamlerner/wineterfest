@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"wineterfest/datamodels"
 	"wineterfest/winedb"
 )
 
@@ -47,7 +48,7 @@ func (s *Signup) signUp(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(req.Username)
 
-	err = s.CL.CreateUser(r.Context(), req.Username)
+	err = s.CL.CreateUser(r.Context(), (&datamodels.User{req.Username}).Normalize())
 	if err != nil {
 		http.Error(w, "Could not create user, try a different name", 400)
 		return

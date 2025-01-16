@@ -13,19 +13,12 @@ type MyWines struct {
 
 func (s *MyWines) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
-	wines, err := s.CL.AllWines(r.Context())
+	myWines, err := s.CL.UsersWines(r.Context(), (&datamodels.User{username}).Normalize())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	// Set response header to indicate JSON content
 	w.Header().Set("Content-Type", "application/json")
-
-	myWines := make([]datamodels.Wine, 0, len(wines))
-	for _, wine := range wines {
-		if wine.Username == username {
-			myWines = append(myWines, wine)
-		}
-	}
 	// Marshal the data and write it to the response
 	if err := json.NewEncoder(w).Encode(myWines); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)

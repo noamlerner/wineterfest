@@ -99,6 +99,11 @@
                             <input type="number" class="form-control" id="anonymized-number"
                                    placeholder="Enter anonymized number" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="brought-with" class="form-label">Brought With (Optional)</label>
+                            <input type="text" class="form-control" id="brought-with"
+                                   placeholder="Who did you bring this with?">
+                        </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Register Wine</button>
                         </div>
@@ -117,6 +122,7 @@
         const wineName = document.getElementById('wine-name').value;
         const winePrice = parseFloat(document.getElementById('wine-price').value);
         const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
+        const broughtWith = document.getElementById('brought-with').value;
 
         // Get the username from the cookie
         const getCookie = (name) => {
@@ -143,6 +149,7 @@
                     winePrice,
                     anonymizedNumber,
                     username,
+                    broughtWith
                 }),
             });
 

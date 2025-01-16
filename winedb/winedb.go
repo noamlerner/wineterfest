@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"log"
 	"strconv"
-	"strings"
 	"wineterfest/datamodels"
 )
 
@@ -39,7 +38,7 @@ func Conn() *Client {
 	return &Client{CL: svc}
 }
 
-func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamodels.WineRating, error) {
+func (cl *Client) MyWineRatings(ctx context.Context, user *datamodels.User) ([]*datamodels.WineRating, error) {
 	input := &dynamodb.QueryInput{
 		TableName:              aws.String(ratingsTableName),
 		KeyConditionExpression: aws.String("#pk = :pkValue"),
@@ -47,7 +46,7 @@ func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamod
 			"#pk": usernamePropertyKey,
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pkValue": &types.AttributeValueMemberS{Value: strings.ToLower(username)},
+			":pkValue": &types.AttributeValueMemberS{Value: user.Username},
 		},
 	}
 
@@ -58,28 +57,27 @@ func (cl *Client) MyWineRatings(ctx context.Context, username string) ([]datamod
 	}
 
 	// Unmarshal the result into a slice of WineRating
-	ratings := make([]datamodels.WineRating, 0, len(result.Items))
+	ratings := make([]*datamodels.WineRating, 0, len(result.Items))
 	for _, item := range result.Items {
-		var rating datamodels.WineRating
-		if err := attributevalue.UnmarshalMap(item, &rating); err != nil {
+		rating := &datamodels.WineRating{}
+		if err := attributevalue.UnmarshalMap(item, rating); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 		}
 		if rating.AnonymizedNumber == -1 {
 			continue
 		}
-		rating.WineUser = strings.Title(rating.WineUser)
-		ratings = append(ratings, rating)
+		ratings = append(ratings, rating.Normalize())
 	}
 	return ratings, nil
 }
 
-func (cl *Client) AllWines(ctx context.Context) ([]datamodels.Wine, error) {
+func (cl *Client) AllWines(ctx context.Context) ([]*datamodels.Wine, error) {
 	// Prepare the scan input.
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(winesTableName),
 	}
 
-	var allItems []datamodels.Wine
+	var allItems []*datamodels.Wine
 	paginator := dynamodb.NewScanPaginator(cl.CL, input)
 
 	// Paginate through all items.
@@ -90,25 +88,24 @@ func (cl *Client) AllWines(ctx context.Context) ([]datamodels.Wine, error) {
 		}
 
 		for _, item := range page.Items {
-			var wine datamodels.Wine
-			if err := attributevalue.UnmarshalMap(item, &wine); err != nil {
+			wine := &datamodels.Wine{}
+			if err := attributevalue.UnmarshalMap(item, wine); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 			}
-			allItems = append(allItems, wine)
-			wine.Username = strings.Title(wine.Username)
+			allItems = append(allItems, wine.Normalize())
 		}
 	}
 
 	return allItems, nil
 }
 
-func (cl *Client) AllRatings(ctx context.Context) ([]datamodels.WineRating, error) {
+func (cl *Client) AllRatings(ctx context.Context) ([]*datamodels.WineRating, error) {
 	// Prepare the scan input.
 	input := &dynamodb.ScanInput{
 		TableName: aws.String(ratingsTableName),
 	}
 
-	var allItems []datamodels.WineRating
+	var allItems []*datamodels.WineRating
 	paginator := dynamodb.NewScanPaginator(cl.CL, input)
 
 	// Paginate through all items.
@@ -119,12 +116,11 @@ func (cl *Client) AllRatings(ctx context.Context) ([]datamodels.WineRating, erro
 		}
 
 		for _, item := range page.Items {
-			var wine datamodels.WineRating
-			if err := attributevalue.UnmarshalMap(item, &wine); err != nil {
+			wine := &datamodels.WineRating{}
+			if err := attributevalue.UnmarshalMap(item, wine); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 			}
-			wine.WineUser = strings.Title(wine.WineUser)
-			allItems = append(allItems, wine)
+			allItems = append(allItems, wine.Normalize())
 		}
 	}
 
@@ -132,7 +128,6 @@ func (cl *Client) AllRatings(ctx context.Context) ([]datamodels.WineRating, erro
 }
 
 func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating) error {
-	w.WineUser = strings.ToLower(w.WineUser)
 	marshalMap, err := attributevalue.MarshalMap(w)
 	if err != nil {
 		return err
@@ -146,7 +141,6 @@ func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating
 }
 
 func (cl *Client) CreateWine(ctx context.Context, w *datamodels.Wine) error {
-	w.Username = strings.ToLower(w.Username)
 	marshalMap, err := attributevalue.MarshalMap(w)
 	if err != nil {
 		return err
@@ -179,20 +173,20 @@ func (cl *Client) GetWine(ctx context.Context, num int) (*datamodels.Wine, error
 	if result == nil || result.Item == nil {
 		return nil, nil
 	}
-	var wine datamodels.Wine
-	if err := attributevalue.UnmarshalMap(result.Item, &wine); err != nil {
+	wine := &datamodels.Wine{}
+	if err := attributevalue.UnmarshalMap(result.Item, wine); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 	}
 
 	// If the Item is nil, the item does not exist
-	return &wine, nil
+	return wine.Normalize(), nil
 }
 
-func (cl *Client) CreateUser(ctx context.Context, user string) error {
+func (cl *Client) CreateUser(ctx context.Context, user *datamodels.User) error {
 	_, err := cl.CL.PutItem(ctx, &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
 			usernamePropertyKey: &types.AttributeValueMemberS{
-				Value: strings.ToLower(user),
+				Value: user.Username,
 			},
 			wineNumberPropertyKey: &types.AttributeValueMemberN{
 				Value: "-1",
@@ -207,13 +201,13 @@ func (cl *Client) CreateUser(ctx context.Context, user string) error {
 	return err
 }
 
-func (cl *Client) UserExists(ctx context.Context, user string) bool {
+func (cl *Client) UserExists(ctx context.Context, user *datamodels.User) bool {
 	// Define the GetItem input
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(ratingsTableName),
 		Key: map[string]types.AttributeValue{
 			usernamePropertyKey: &types.AttributeValueMemberS{
-				Value: strings.ToLower(user),
+				Value: user.Username,
 			},
 			wineNumberPropertyKey: &types.AttributeValueMemberN{
 				Value: "-1",
@@ -230,4 +224,19 @@ func (cl *Client) UserExists(ctx context.Context, user string) bool {
 		return false
 	}
 	return true
+}
+
+func (cl *Client) UsersWines(ctx context.Context, user *datamodels.User) ([]*datamodels.Wine, error) {
+	wines, err := cl.AllWines(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	myWines := make([]*datamodels.Wine, 0, len(wines))
+	for _, wine := range wines {
+		if wine.Username == user.Username {
+			myWines = append(myWines, wine)
+		}
+	}
+	return myWines, nil
 }

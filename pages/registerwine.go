@@ -61,6 +61,10 @@ func (s *RegisterWine) register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Wine must have a maximum length of 1000!", 400)
 		return
 	}
+	if len(wineRegistration.BroughtWith) > 1000 {
+		http.Error(w, "BroughtWith must have a maximum length of 1000!", 400)
+		return
+	}
 
 	err = s.CL.CreateWine(r.Context(), &wineRegistration)
 	if err != nil {
