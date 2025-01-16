@@ -120,9 +120,9 @@ func bestWine(wineRankings []CrowdWineRating) JsonStats {
 }
 
 func controversialWine(wineRatings map[int][]datamodels.WineRating, numToWine map[int]datamodels.Wine) JsonStats {
-	stdevs := make([]Stat[datamodels.Wine], len(wineRatings))
+	stdevs := make([]Stat[datamodels.Wine], 0, len(wineRatings))
 	for _, wine := range wineRatings {
-		allRatings := make([]float64, len(wineRatings))
+		allRatings := make([]float64, 0, len(wineRatings))
 		stdevs = append(stdevs, Stat[datamodels.Wine]{})
 
 		for _, rating := range wine {
@@ -346,8 +346,7 @@ func calculateCorrelation(guesses, actualPrices []float64) *float64 {
 
 	// Calculate Pearson correlation
 	if varianceGuess == 0 || varianceActual == 0 {
-		f := 1.0
-		return &f
+		return nil
 	}
 	f := covariance / math.Sqrt(varianceGuess*varianceActual)
 	return &f
