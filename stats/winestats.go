@@ -2,6 +2,7 @@ package stats
 
 import (
 	"fmt"
+	"gonum.org/v1/gonum/stat"
 	"math"
 	"sort"
 	"strconv"
@@ -49,6 +50,8 @@ func Calc(allWines []datamodels.Wine, allRatings []datamodels.WineRating) []Json
 	s = ap(s, topValueWine(wineRankings))
 	s = ap(s, userCorrelationCoefficient(ratingsByUser, numToWine))
 	s = ap(s, trueToTheCrowd(wineRankings, ratingsByUser))
+	s = ap(s, controversialWine(ratingsByWine, numToWine))
+	controversialWine(ratingsByWine, numToWine)
 	return s
 }
 
@@ -114,6 +117,44 @@ func bestWine(wineRankings []CrowdWineRating) JsonStats {
 		})
 	}
 	return stat
+}
+
+func controversialWine(wineRatings map[int][]datamodels.WineRating, numToWine map[int]datamodels.Wine) JsonStats {
+	stdevs := make([]Stat[datamodels.Wine], len(wineRatings))
+	for _, wine := range wineRatings {
+		allRatings := make([]float64, len(wineRatings))
+		stdevs = append(stdevs, Stat[datamodels.Wine]{})
+
+		for _, rating := range wine {
+			allRatings = append(allRatings, float64(rating.Rating))
+			stdevs[len(stdevs)-1].Name = numToWine[rating.AnonymizedNumber]
+		}
+		dev := stat.PopStdDev(allRatings, nil)
+		stdevs[len(stdevs)-1].FloatValue = dev
+		stdevs[len(stdevs)-1].IntValue = len(wine)
+	}
+
+	sortFloat(stdevs)
+
+	jStat := JsonStats{
+		Title:       "Most Controversial Wine",
+		Description: "Most loved and hated",
+	}
+
+	jStat.Table = make([][]string, 0, len(stdevs)+1)
+	jStat.Table = append(jStat.Table, []string{
+		"Wine #", "Wine Name", "Controversy Score", "#Ratings", "Brought By",
+	})
+	for _, wine := range stdevs {
+		jStat.Table = append(jStat.Table, []string{
+			strconv.Itoa(wine.Name.AnonymizedNumber),
+			wine.Name.WineName,
+			fmt.Sprintf("%.2f", wine.FloatValue*100),
+			strconv.Itoa(wine.IntValue),
+			wine.Name.Username,
+		})
+	}
+	return jStat
 }
 
 func generateWineRankings(ratingsByWine map[int][]datamodels.WineRating, numToWine map[int]datamodels.Wine) []CrowdWineRating {
