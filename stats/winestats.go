@@ -51,7 +51,6 @@ func Calc(allWines []*datamodels.Wine, allRatings []*datamodels.WineRating) []Js
 	s = ap(s, userCorrelationCoefficient(ratingsByUser, numToWine))
 	s = ap(s, trueToTheCrowd(wineRankings, ratingsByUser))
 	s = ap(s, controversialWine(ratingsByWine, numToWine))
-	controversialWine(ratingsByWine, numToWine)
 	return s
 }
 
@@ -61,7 +60,7 @@ func ap(s []JsonStats, stats ...JsonStats) []JsonStats {
 
 func howAUserRates(ratingsByUser map[string][]*datamodels.WineRating) JsonStats {
 	stat := JsonStats{
-		Title:       "Average Wine Ratings by Users",
+		Title:       "Your rating stats",
 		Description: "Are you a generous rater?",
 		Table:       make([][]string, 0, len(ratingsByUser)+1),
 	}
@@ -271,8 +270,8 @@ func trueToTheCrowd(wineRankings []CrowdWineRating, ratingsByUser map[string][]*
 
 func userCorrelationCoefficient(ratingsByUser map[string][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) JsonStats {
 	stat := JsonStats{
-		Title:       "Price Guessing Correlation",
-		Description: "How do your taste buds stack up?",
+		Title:       "Price Guessing",
+		Description: "Bring out th Sommelier",
 	}
 
 	correlations := make([]Stat[string], 0, len(ratingsByUser))

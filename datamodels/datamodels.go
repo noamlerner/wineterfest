@@ -7,6 +7,7 @@ type WineRating struct {
 	Rating           int     `json:"rating"  dynamodbav:"wineRating"`
 	WineUser         string  `json:"wineuser"  dynamodbav:"u"`
 	PriceGuess       float64 `json:"priceGuess" dynamodbav:"price"`
+	TimeStampMilli   int64   `json:"timeStamp"  dynamodbav:"tsmilli"`
 }
 
 type User struct {

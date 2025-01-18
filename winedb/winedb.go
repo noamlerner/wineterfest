@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"log"
 	"strconv"
+	"time"
 	"wineterfest/datamodels"
 )
 
@@ -128,6 +129,7 @@ func (cl *Client) AllRatings(ctx context.Context) ([]*datamodels.WineRating, err
 }
 
 func (cl *Client) CreateWineRating(ctx context.Context, w *datamodels.WineRating) error {
+	w.TimeStampMilli = time.Now().UnixMilli()
 	marshalMap, err := attributevalue.MarshalMap(w)
 	if err != nil {
 		return err
