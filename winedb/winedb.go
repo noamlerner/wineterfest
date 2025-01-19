@@ -193,6 +193,9 @@ func (cl *Client) CreateUser(ctx context.Context, user *datamodels.User) error {
 			wineNumberPropertyKey: &types.AttributeValueMemberN{
 				Value: "-1",
 			},
+			"tsmilli": &types.AttributeValueMemberN{
+				Value: strconv.FormatInt(time.Now().UnixMilli(), 10),
+			},
 		},
 		TableName:           aws.String(ratingsTableName),
 		ConditionExpression: aws.String("attribute_not_exists(#username)"),

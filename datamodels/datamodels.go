@@ -11,7 +11,7 @@ type WineRating struct {
 }
 
 type User struct {
-	Username string `json:"username"`
+	Username string `json:"username" dynamodbav:"u"`
 }
 
 type Wine struct {

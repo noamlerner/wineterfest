@@ -28,6 +28,7 @@ type JsonStats struct {
 }
 
 func Calc(allWines []*datamodels.Wine, allRatings []*datamodels.WineRating) []JsonStats {
+
 	ratingsByUser := make(map[string][]*datamodels.WineRating)
 	ratingsByWine := make(map[int][]*datamodels.WineRating)
 	for _, rating := range allRatings {
