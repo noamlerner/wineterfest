@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"encoding/json"
 	"fmt"
 	"gonum.org/v1/gonum/stat"
 	"math"
@@ -43,16 +44,34 @@ func Calc(allWines []*datamodels.Wine, allRatings []*datamodels.WineRating) []Js
 		numToWine[wine.AnonymizedNumber] = wine
 	}
 
-	wineRankings := generateWineRankings(ratingsByWine, numToWine)
+	wineRatings := [][]string{
+		{"WineName", "WinePrice", "Rating", "RatedBy", "PriceGuess", "Timestamp of Rating (Unix Milli)"},
+	}
+	count := 0
+	for _, rating := range allRatings {
+		if rating.AnonymizedNumber == -1 {
+			count++
+			continue
+		}
+		wine := numToWine[rating.AnonymizedNumber]
+		wineRatings = append(wineRatings, []string{
+			wine.WineName, fmt.Sprintf("%0.2f", wine.WinePrice), strconv.Itoa(rating.Rating), rating.WineUser, fmt.Sprintf("%0.2f", rating.PriceGuess), strconv.Itoa(int(rating.TimeStampMilli)),
+		})
+	}
+	fmt.Println(count)
+	marshal, _ := json.Marshal(wineRatings)
+	fmt.Println(string(marshal))
 
-	s := []JsonStats{}
-	s = ap(s, howAUserRates(ratingsByUser))
-	s = ap(s, bestWine(wineRankings))
-	s = ap(s, topValueWine(wineRankings))
-	s = ap(s, userCorrelationCoefficient(ratingsByUser, numToWine))
-	s = ap(s, trueToTheCrowd(wineRankings, ratingsByUser))
-	s = ap(s, controversialWine(ratingsByWine, numToWine))
-	return s
+	for _, line := range wineRatings {
+		for i, w := range line {
+			fmt.Print(w)
+			if i != len(line)-1 {
+				fmt.Print(",")
+			}
+		}
+		fmt.Println()
+	}
+	return nil
 }
 
 func ap(s []JsonStats, stats ...JsonStats) []JsonStats {
