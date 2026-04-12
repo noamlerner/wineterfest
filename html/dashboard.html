@@ -1,219 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Include Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f4f9; /* Soft off-white */
-            color: #333; /* Subtle dark gray for text */
-            font-family: 'Roboto', sans-serif;
-        }
-        .card {
-            border: none;
-            background-color: #ffffff;
-            border-radius: 15px; /* Rounded corners */
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
-        }
-        .card-header {
-            background-color: #4a90e2; /* Gentle blue for header */
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
-        .card-body {
-            background-color: #ffffff;
-            color: #555;
-            padding: 2rem;
-        }
-        .btn-primary {
-            background-color: #5cb85c; /* Green for call-to-action */
-            border-color: #5cb85c;
-            color: #ffffff;
-        }
-        .btn-primary:hover {
-            background-color: #4cae4c; /* Darker green */
-            border-color: #4cae4c;
-        }
-        .btn-secondary {
-            background-color: #D980FA; /* Amber for secondary */
-            border-color: #f0ad4e;
-            color: #ffffff;
-        }
-        .btn-secondary:hover {
-            background-color: #ec971f;
-            border-color: #ec971f;
-        }
-        .btn-success {
-            background-color: #337ab7; /* Blue for success */
-            border-color: #337ab7;
-            color: #ffffff;
-        }
-        .btn-success:hover {
-            background-color: #286090;
-            border-color: #204d74;
-        }
-        h1 {
-            font-family: 'Roboto', sans-serif;
-            font-weight: bold;
-        }
-        p {
-            font-family: 'Roboto', sans-serif;
-            font-size: 1.1rem;
-            color: #666;
-        }
-        .list-group-item {
-            background-color: #f9f9f9;
-            color: #333;
-            border: none;
-            border-bottom: 1px solid #ddd;
-            font-size: 1.2rem;
-            padding: 1.5rem; /* Increased padding for larger height */
-            border-radius: 8px; /* Slightly rounded corners */
-            margin-bottom: 10px; /* Space between items */
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-        }
-        .list-group-item:hover {
-            background-color: #f1f1f1;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
-        }
-        .list-group-item:last-child {
-            border-bottom: none;
-        }
-        .d-flex-center {
-            justify-content: center;
-        }
-    </style>
-</head>
-<body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h1 id="greeting">Dashboard</h1>
-                </div>
-                <div class="card-body">
-                    <p>Welcome to your wine management dashboard. What would you like to do?</p>
-                    <div class="d-grid gap-3">
-                        <button id="register-wine" class="btn btn-primary btn-lg">Register Wine</button>
-                        <button id="rate-wine" class="btn btn-secondary btn-lg">Rate Wine</button>
-                        <div class="d-flex d-flex-center gap-2">
-                            <button id="my-wines" class="btn btn-success btn-lg">My Wines</button>
-                            <button id="my-wine-ratings" class="btn btn-success btn-lg">My Wine Ratings</button>
-                        </div>
-                    </div>
-                    <div class="mt-5">
-                        <h2 id="list-title">Your Wine Ratings</h2>
-                        <ul id="wine-list" class="list-group">
-                            <li class="list-group-item">Loading...</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Include Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const getCookie = (name) => {
-        const cookies = document.cookie.split('; ');
-        const cookie = cookies.find(row => row.startsWith(`${name}=`));
-        return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
-    };
-    const username = getCookie('wineuserc');
-
-    if (username) {
-        document.getElementById('greeting').textContent = `Hello, ${username}`;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wineterfest — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0608;
+      --surface: #1c1215;
+      --surface-raised: #251820;
+      --border: #332028;
+      --accent: #9B2335;
+      --gold: #C9A050;
+      --gold-hover: #d4ae63;
+      --text: #f0e8e0;
+      --muted: #8a7a75;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100dvh;
+      padding: 0 0 40px;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
-    document.getElementById('register-wine').addEventListener('click', function () {
-        window.location.href = '/register-wine';
-    });
+    /* Header */
+    .header {
+      padding: 48px 24px 28px;
+    }
+    .greeting-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+    .greeting-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--gold);
+    }
 
-    document.getElementById('rate-wine').addEventListener('click', function () {
-        window.location.href = '/rate-wine';
-    });
+    /* Action grid */
+    .actions {
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .action-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: background 0.15s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .action-card:active { transform: scale(0.97); background: var(--surface-raised); }
+    @media (hover: hover) { .action-card:hover { background: var(--surface-raised); } }
+    .action-icon { font-size: 1.6rem; line-height: 1; }
+    .action-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .action-card.highlight {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .action-card.highlight:active { background: #b52a3e; }
+    @media (hover: hover) { .action-card.highlight:hover { background: #b52a3e; } }
 
-    let wineRatings = [];
-    let wines = null;
+    .stats-btn {
+      margin: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .stats-btn:active { background: var(--surface-raised); }
+    @media (hover: hover) { .stats-btn:hover { background: var(--surface-raised); } }
+    .stats-btn-left { display: flex; align-items: center; gap: 12px; }
+    .stats-btn-icon { font-size: 1.4rem; }
+    .stats-btn-label { font-weight: 600; font-size: 0.95rem; }
+    .stats-btn-arrow { color: var(--gold); font-size: 1.1rem; }
+
+    /* Divider */
+    .divider {
+      margin: 28px 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-tabs { display: flex; gap: 4px; }
+    .tab-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn.active {
+      background: var(--surface-raised);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* List */
+    .list-section { padding: 16px 24px 0; }
+    .list-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .wine-list { display: flex; flex-direction: column; gap: 8px; }
+    .wine-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .wine-num {
+      background: var(--surface-raised);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    .wine-info { flex: 1; min-width: 0; }
+    .wine-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .wine-meta { font-size: 0.8rem; color: var(--muted); }
+    .wine-badge {
+      background: var(--surface-raised);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 32px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="greeting-label">Welcome back</div>
+    <div class="greeting-name" id="greeting">—</div>
+  </div>
+
+  <div class="actions">
+    <a href="/register-wine" class="action-card highlight">
+      <div class="action-icon">🍷</div>
+      <div class="action-label">Register Wine</div>
+    </a>
+    <a href="/rate-wine" class="action-card">
+      <div class="action-icon">⭐</div>
+      <div class="action-label">Rate Wine</div>
+    </a>
+  </div>
+
+  <a href="/stats-display" class="stats-btn">
+    <div class="stats-btn-left">
+      <div class="stats-btn-icon">📊</div>
+      <div class="stats-btn-label">View Stats</div>
+    </div>
+    <div class="stats-btn-arrow">→</div>
+  </a>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-tabs">
+      <button class="tab-btn active" id="tab-ratings" onclick="showRatings()">My Ratings</button>
+      <button class="tab-btn" id="tab-wines" onclick="showWines()">My Wines</button>
+    </div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="list-section">
+    <div class="list-title" id="list-title">Your Ratings</div>
+    <div class="wine-list" id="wine-list">
+      <div class="empty-state">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    const getCookie = name => {
+      const c = document.cookie.split('; ').find(r => r.startsWith(name + '='));
+      return c ? decodeURIComponent(c.split('=')[1]) : null;
+    };
+    const username = getCookie('wineuserc');
+    if (username) document.getElementById('greeting').textContent = username;
+
+    let ratingsData = [];
+    let winesData = null;
 
     async function fetchRatings() {
-        try {
-            const ratingsResponse = await fetch(`/my-ratings?username=${encodeURIComponent(username)}`);
-            if (!ratingsResponse.ok) throw new Error('Failed to fetch ratings');
-            wineRatings = await ratingsResponse.json();
-            populateList(wineRatings, 'Your Wine Ratings');
-        } catch (error) {
-            console.error(error);
-            document.getElementById('wine-list').innerHTML = '<li class="list-group-item text-danger">Failed to load ratings</li>';
-        }
+      try {
+        const res = await fetch(`/my-ratings?username=${encodeURIComponent(username)}`);
+        if (!res.ok) throw new Error();
+        ratingsData = await res.json();
+        renderRatings();
+      } catch {
+        document.getElementById('wine-list').innerHTML = '<div class="empty-state">Failed to load ratings.</div>';
+      }
     }
 
     async function fetchWines() {
-        try {
-            const winesResponse = await fetch(`/my-wines?username=${encodeURIComponent(username)}`);
-            if (!winesResponse.ok) throw new Error('Failed to fetch wines');
-            wines = await winesResponse.json();
-            populateList(wines, 'Your Wines');
-        } catch (error) {
-            console.error(error);
-            document.getElementById('wine-list').innerHTML = '<li class="list-group-item text-danger">Failed to load wines</li>';
-        }
+      try {
+        const res = await fetch(`/my-wines?username=${encodeURIComponent(username)}`);
+        if (!res.ok) throw new Error();
+        winesData = await res.json();
+        renderWines();
+      } catch {
+        document.getElementById('wine-list').innerHTML = '<div class="empty-state">Failed to load wines.</div>';
+      }
     }
 
-    function populateList(data, title) {
-        const listContainer = document.getElementById('wine-list');
-        listContainer.innerHTML = '';
-        document.getElementById('list-title').textContent = title;
-
-        data.forEach(item => {
-            const listItem = document.createElement('li');
-            listItem.classList.add('list-group-item');
-
-            if (title === 'Your Wines') {
-                listItem.innerHTML = `
-                    <div><strong>Wine Name:</strong> ${item.wineName}</div>
-                    <div><strong>Price:</strong> $${item.winePrice}</div>
-                    <div><strong>Anonymized Number:</strong> ${item.anonymizedNumber}</div>
-                `;
-            } else {
-                listItem.innerHTML = `
-                    <div><strong>Wine Number:</strong> ${item.anonymizedNumber}</div>
-                    <div><strong>Rating:</strong> ${item.rating}</div>
-                    <div><strong>Price Guess:</strong> $${item.priceGuess}</div>
-                `;
-            }
-
-            listContainer.appendChild(listItem);
-        });
+    function renderRatings() {
+      document.getElementById('list-title').textContent = 'Your Ratings';
+      const list = document.getElementById('wine-list');
+      if (!ratingsData.length) {
+        list.innerHTML = '<div class="empty-state">No ratings yet.</div>';
+        return;
+      }
+      list.innerHTML = ratingsData.map(item => `
+        <div class="wine-item">
+          <div class="wine-num">${item.anonymizedNumber}</div>
+          <div class="wine-info">
+            <div class="wine-name">Wine #${item.anonymizedNumber}</div>
+            <div class="wine-meta">Guessed $${item.priceGuess}</div>
+          </div>
+          <div class="wine-badge">${item.rating}/10</div>
+        </div>
+      `).join('');
     }
 
-    document.getElementById('my-wines').addEventListener('click', function () {
-        if (wines === null) {
-            fetchWines();
-        } else {
-            populateList(wines, 'Your Wines');
-        }
-    });
+    function renderWines() {
+      document.getElementById('list-title').textContent = 'Your Wines';
+      const list = document.getElementById('wine-list');
+      if (!winesData || !winesData.length) {
+        list.innerHTML = '<div class="empty-state">No wines registered.</div>';
+        return;
+      }
+      list.innerHTML = winesData.map(item => `
+        <div class="wine-item">
+          <div class="wine-num">${item.anonymizedNumber}</div>
+          <div class="wine-info">
+            <div class="wine-name">${item.wineName}</div>
+            <div class="wine-meta">$${item.winePrice}</div>
+          </div>
+        </div>
+      `).join('');
+    }
 
-    document.getElementById('my-wine-ratings').addEventListener('click', function () {
-        populateList(wineRatings, 'Your Wine Ratings');
-    });
+    function showRatings() {
+      document.getElementById('tab-ratings').classList.add('active');
+      document.getElementById('tab-wines').classList.remove('active');
+      renderRatings();
+    }
+
+    function showWines() {
+      document.getElementById('tab-wines').classList.add('active');
+      document.getElementById('tab-ratings').classList.remove('active');
+      if (winesData === null) fetchWines();
+      else renderWines();
+    }
 
     fetchRatings();
-</script>
+  </script>
 </body>
 </html>

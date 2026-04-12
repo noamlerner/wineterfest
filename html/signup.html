@@ -1,123 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Include Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f4f9; /* Soft off-white background */
-            color: #333; /* Subtle dark gray for text */
-            font-family: 'Roboto', sans-serif;
-        }
-        .card {
-            border: none;
-            background-color: #ffffff;
-            border-radius: 15px; /* Rounded corners */
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
-        }
-        .card-header {
-            background-color: #4a90e2; /* Gentle blue for header */
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
-        .card-body {
-            background-color: #ffffff;
-            color: #555;
-            padding: 2rem;
-        }
-        .btn-primary {
-            background-color: #5cb85c; /* Green for call-to-action */
-            border-color: #5cb85c;
-            color: #ffffff;
-        }
-        .btn-primary:hover {
-            background-color: #4cae4c; /* Darker green */
-            border-color: #4cae4c;
-        }
-        h1 {
-            font-family: 'Roboto', sans-serif;
-            font-weight: bold;
-        }
-        label {
-            font-family: 'Roboto', sans-serif;
-            font-size: 1rem;
-            color: #666;
-        }
-        .form-control {
-            background-color: #f9f9f9; /* Light background for input */
-            border: 1px solid #ddd;
-            color: #333;
-        }
-        .form-control:focus {
-            border-color: #4a90e2;
-            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wineterfest — Sign Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0608;
+      --surface: #1c1215;
+      --surface-raised: #251820;
+      --border: #332028;
+      --gold: #C9A050;
+      --gold-hover: #d4ae63;
+      --text: #f0e8e0;
+      --muted: #8a7a75;
+      --error: #e05560;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .wordmark {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      color: var(--gold);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 40px;
+      font-style: italic;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 380px;
+    }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+      -webkit-appearance: none;
+    }
+    input[type="text"]:focus { border-color: var(--gold); }
+    input[type="text"]::placeholder { color: var(--muted); }
+    .error {
+      color: var(--error);
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-gold { background: var(--gold); color: #0d0608; }
+    @media (hover: hover) { .btn-gold:hover { background: var(--gold-hover); } }
+    .btn-gold:active { transform: scale(0.98); }
+    .footer-link {
+      text-align: center;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+    .footer-link a { color: var(--gold); text-decoration: none; }
+  </style>
 </head>
 <body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header text-center">
-                    <h1>Sign Up</h1>
-                </div>
-                <div class="card-body">
-                    <form id="signup-form">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Sign Up</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+  <div class="wordmark">Wineterfest</div>
+  <p class="tagline">Rate blindly. Judge freely.</p>
 
-<!-- Include Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+  <div class="card">
+    <h2>Join the party</h2>
+    <form id="signup-form">
+      <label for="username">Your name</label>
+      <input type="text" id="username" placeholder="e.g. Noam" autocomplete="off" autocapitalize="words" required>
+      <div class="error" id="error-msg"></div>
+      <button type="submit" class="btn btn-gold">Sign Up</button>
+    </form>
+  </div>
+
+  <div class="footer-link">Already here? <a href="/signin">Sign in</a></div>
+
+  <script>
     document.getElementById('signup-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-
-        // Send the username to the server
-        try {
-            const response = await fetch('/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username }),
-            });
-
-            if (response.ok) {
-                // Set the cookie only if the response is successful
-                const expirationDate = new Date();
-                expirationDate.setTime(expirationDate.getTime() + (24 * 60 * 60 * 1000)); // 24 hours from now
-                document.cookie = "wineuserc=" + encodeURIComponent(username) + "; path=/; expires=" + expirationDate.toUTCString() + ";";
-                window.location.href = "/dashboard"; // Redirect to dashboard
-            } else {
-                const error = await response.json();
-                alert(`Error: ${error.message}`);
-            }
-        } catch (error) {
-            console.error('Error during sign-up:', error);
-            alert('An error occurred. Please try again later.');
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const errorEl = document.getElementById('error-msg');
+      errorEl.style.display = 'none';
+      try {
+        const response = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username }),
+        });
+        if (response.ok) {
+          const exp = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
+          document.cookie = `wineuserc=${encodeURIComponent(username)}; path=/; expires=${exp};`;
+          window.location.href = '/dashboard';
+        } else {
+          const error = await response.json();
+          errorEl.textContent = error.message;
+          errorEl.style.display = 'block';
         }
+      } catch (err) {
+        errorEl.textContent = 'Something went wrong. Try again.';
+        errorEl.style.display = 'block';
+      }
     });
-</script>
+  </script>
 </body>
 </html>

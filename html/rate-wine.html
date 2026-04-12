@@ -1,152 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rate Wine</title>
-    <!-- Include Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Include Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f4f9; /* Soft off-white */
-            color: #333; /* Subtle dark gray for text */
-            font-family: 'Roboto', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wineterfest — Rate Wine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0608;
+      --surface: #1c1215;
+      --surface-raised: #251820;
+      --border: #332028;
+      --gold: #C9A050;
+      --gold-hover: #d4ae63;
+      --text: #f0e8e0;
+      --muted: #8a7a75;
+      --error: #e05560;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100dvh;
+      padding: 0 0 40px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .header {
+      padding: 48px 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .back-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    .section { padding: 0 24px; margin-bottom: 28px; }
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    input[type="number"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem;
+      padding: 15px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    input[type="number"]:focus { border-color: var(--gold); }
+    input[type="number"]::placeholder { color: var(--muted); }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-        .card {
-            border: none;
-            background-color: #ffffff;
-            border-radius: 15px; /* Rounded corners */
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* Softer shadow */
-        }
+    /* Rating grid */
+    .rating-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .rating-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 0;
+      height: 56px;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rating-btn:active { transform: scale(0.93); }
+    .rating-btn.selected {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #0d0608;
+    }
+    @media (hover: hover) {
+      .rating-btn:not(.selected):hover {
+        background: var(--surface-raised);
+        border-color: var(--muted);
+      }
+    }
 
-        .card-header {
-            background-color: #4a90e2; /* Gentle blue for header */
-            color: #ffffff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-        }
+    .error {
+      color: var(--error);
+      font-size: 0.875rem;
+      padding: 0 24px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .submit-wrap { padding: 0 24px; }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, opacity 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-gold { background: var(--gold); color: #0d0608; }
+    .btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
+    @media (hover: hover) { .btn-gold:not(:disabled):hover { background: var(--gold-hover); } }
+    .btn-gold:not(:disabled):active { transform: scale(0.98); }
 
-        .card-body {
-            background-color: #ffffff;
-            color: #555;
-            padding: 2rem;
-        }
-
-        .btn-primary {
-            background-color: #5cb85c; /* Green for call-to-action */
-            border-color: #5cb85c;
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background-color: #4cae4c; /* Darker green */
-            border-color: #4cae4c;
-        }
-
-        h1 {
-            font-family: 'Roboto', sans-serif;
-            font-weight: bold;
-        }
-
-        label {
-            font-family: 'Roboto', sans-serif;
-            font-size: 1rem;
-            color: #555; /* Darker gray for text labels */
-        }
-
-        .form-control {
-            background-color: #f9f9f9; /* Light background for input */
-            border: 1px solid #ddd;
-            color: #333;
-            font-size: 1rem;
-            padding: 0.75rem;
-            border-radius: 8px; /* Rounded input fields */
-        }
-
-        .form-control:focus {
-            border-color: #4a90e2;
-            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
-        }
-    </style>
+    .success-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .success-overlay.show { opacity: 1; pointer-events: all; }
+    .success-icon { font-size: 3rem; }
+    .success-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--gold);
+    }
+  </style>
 </head>
 <body>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header text-center">
-                    <h1>Rate Wine</h1>
-                </div>
-                <div class="card-body">
-                    <form id="rate-wine-form">
-                        <div class="mb-3">
-                            <label for="anonymized-number" class="form-label">Anonymized Number</label>
-                            <input type="number" class="form-control" id="anonymized-number"
-                                   placeholder="Enter anonymized number" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="rating" class="form-label">Rating (1-10)</label>
-                            <input type="number" class="form-control" id="rating" placeholder="Enter your rating"
-                                   min="1" max="10" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="price-guess" class="form-label">Wine Price</label>
-                            <input type="number" step="0.01" class="form-control" id="price-guess"
-                                   placeholder="Guess the price" required>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Submit Rating</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+  <div class="header">
+    <a href="/dashboard" class="back-btn">←</a>
+    <h1>Rate Wine</h1>
+  </div>
+
+  <form id="rate-wine-form">
+    <div class="section">
+      <div class="section-label">Wine number</div>
+      <input type="number" id="anonymized-number" placeholder="Tag number" required inputmode="numeric">
     </div>
-</div>
 
-<!-- Include Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.getElementById('rate-wine-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
-        const rating = parseInt(document.getElementById('rating').value, 10);
-        const priceGuess = parseFloat(document.getElementById('price-guess').value);
+    <div class="section">
+      <div class="section-label">Your rating</div>
+      <div class="rating-grid" id="rating-grid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
 
-        // Get the wineuser cookie
-        const getCookie = (name) => {
-            const cookies = document.cookie.split('; ');
-            const cookie = cookies.find(row => row.startsWith(`${name}=`));
-            return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
-        };
-        const wineuser = getCookie('wineuserc');
+    <div class="section">
+      <div class="section-label">Price guess</div>
+      <input type="number" id="price-guess" placeholder="$0.00" step="0.01" min="0" required inputmode="decimal">
+    </div>
 
-        if (!wineuser) {
-            alert('Error: User not logged in.');
-            return;
-        }
+    <div class="error" id="error-msg"></div>
 
+    <div class="submit-wrap">
+      <button type="submit" class="btn btn-gold" id="submit-btn" disabled>Submit Rating</button>
+    </div>
+  </form>
+
+  <div class="success-overlay" id="success">
+    <div class="success-icon">🍷</div>
+    <div class="success-text">Rating saved!</div>
+  </div>
+
+  <script>
+    const getCookie = name => {
+      const c = document.cookie.split('; ').find(r => r.startsWith(name + '='));
+      return c ? decodeURIComponent(c.split('=')[1]) : null;
+    };
+
+    let selectedRating = null;
+
+    // Build rating buttons
+    const grid = document.getElementById('rating-grid');
+    for (let i = 1; i <= 10; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rating-btn';
+      btn.textContent = i;
+      btn.dataset.val = i;
+      btn.addEventListener('click', () => selectRating(i));
+      grid.appendChild(btn);
+    }
+
+    function selectRating(val) {
+      selectedRating = val;
+      document.querySelectorAll('.rating-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.dataset.val) === val);
+      });
+      document.getElementById('submit-btn').disabled = false;
+    }
+
+    document.getElementById('rate-wine-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('error-msg');
+      errorEl.style.display = 'none';
+
+      const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
+      const priceGuess = parseFloat(document.getElementById('price-guess').value);
+      const wineuser = getCookie('wineuserc');
+
+      if (!wineuser) { window.location.href = '/signin'; return; }
+      if (!selectedRating) { errorEl.textContent = 'Select a rating first.'; errorEl.style.display = 'block'; return; }
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      try {
         const response = await fetch('/rate-wine', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({anonymizedNumber, rating, wineuser, priceGuess}),
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ anonymizedNumber, rating: selectedRating, wineuser, priceGuess }),
         });
-
         if (response.ok) {
-            alert('Rating submitted successfully!');
-            window.location = "/";
+          document.getElementById('success').classList.add('show');
+          setTimeout(() => window.location.href = '/dashboard', 1200);
         } else {
-            const errorMessage = await response.text(); // Parse the response text
-            alert(`Error: ${errorMessage}`); // Display the error message in the alert
+          const msg = await response.text();
+          errorEl.textContent = msg || 'Something went wrong.';
+          errorEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Rating';
         }
+      } catch {
+        errorEl.textContent = 'Network error. Try again.';
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Rating';
+      }
     });
-</script>
+  </script>
 </body>
 </html>

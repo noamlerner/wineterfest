@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"encoding/json"
 	"fmt"
 	"gonum.org/v1/gonum/stat"
 	"math"
@@ -44,34 +43,19 @@ func Calc(allWines []*datamodels.Wine, allRatings []*datamodels.WineRating) []Js
 		numToWine[wine.AnonymizedNumber] = wine
 	}
 
-	wineRatings := [][]string{
-		{"WineName", "WinePrice", "Rating", "RatedBy", "PriceGuess", "Timestamp of Rating (Unix Milli)"},
-	}
-	count := 0
-	for _, rating := range allRatings {
-		if rating.AnonymizedNumber == -1 {
-			count++
-			continue
-		}
-		wine := numToWine[rating.AnonymizedNumber]
-		wineRatings = append(wineRatings, []string{
-			wine.WineName, fmt.Sprintf("%0.2f", wine.WinePrice), strconv.Itoa(rating.Rating), rating.WineUser, fmt.Sprintf("%0.2f", rating.PriceGuess), strconv.Itoa(int(rating.TimeStampMilli)),
-		})
-	}
-	fmt.Println(count)
-	marshal, _ := json.Marshal(wineRatings)
-	fmt.Println(string(marshal))
+	wineRankings := generateWineRankings(ratingsByWine, numToWine)
 
-	for _, line := range wineRatings {
-		for i, w := range line {
-			fmt.Print(w)
-			if i != len(line)-1 {
-				fmt.Print(",")
-			}
-		}
-		fmt.Println()
-	}
-	return nil
+	return ap(nil,
+		howAUserRates(ratingsByUser),
+		mostRated(ratingsByWine, numToWine),
+		userCorrelationCoefficient(ratingsByUser, numToWine),
+		bestPriceGuess(ratingsByUser, numToWine),
+		mostContrarian(wineRankings, ratingsByUser),
+		trueToTheCrowd(wineRankings, ratingsByUser),
+		controversialWine(ratingsByWine, numToWine),
+		topValueWine(wineRankings),
+		bestWine(wineRankings),
+	)
 }
 
 func ap(s []JsonStats, stats ...JsonStats) []JsonStats {
@@ -326,6 +310,138 @@ func userCorrelationCoefficient(ratingsByUser map[string][]*datamodels.WineRatin
 		})
 	}
 	return stat
+}
+
+func mostRated(ratingsByWine map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) JsonStats {
+	entries := make([]Stat[*datamodels.Wine], 0, len(ratingsByWine))
+	for num, ratings := range ratingsByWine {
+		wine, ok := numToWine[num]
+		if !ok {
+			continue
+		}
+		sum := 0.0
+		for _, r := range ratings {
+			sum += float64(r.Rating)
+		}
+		entries = append(entries, Stat[*datamodels.Wine]{
+			Name:       wine,
+			IntValue:   len(ratings),
+			FloatValue: sum / float64(len(ratings)),
+		})
+	}
+	sortInt(entries)
+
+	jStat := JsonStats{
+		Title:       "Most Rated",
+		Description: "The wines everyone had an opinion on",
+		Table:       make([][]string, 0, len(entries)+1),
+	}
+	jStat.Table = append(jStat.Table, []string{"Wine #", "Wine Name", "# of Ratings", "Avg Rating", "Brought By"})
+	for _, e := range entries {
+		jStat.Table = append(jStat.Table, []string{
+			strconv.Itoa(e.Name.AnonymizedNumber),
+			e.Name.WineName,
+			strconv.Itoa(e.IntValue),
+			fmt.Sprintf("%.2f", e.FloatValue),
+			e.Name.BroughtBy(),
+		})
+	}
+	return jStat
+}
+
+func bestPriceGuess(ratingsByUser map[string][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) JsonStats {
+	type guessEntry struct {
+		user   string
+		wine   *datamodels.Wine
+		guess  float64
+		actual float64
+		diff   float64
+	}
+
+	var entries []guessEntry
+	for user, ratings := range ratingsByUser {
+		for _, r := range ratings {
+			wine, ok := numToWine[r.AnonymizedNumber]
+			if !ok || wine.WinePrice == 0 {
+				continue
+			}
+			entries = append(entries, guessEntry{
+				user:   user,
+				wine:   wine,
+				guess:  r.PriceGuess,
+				actual: wine.WinePrice,
+				diff:   math.Abs(r.PriceGuess - wine.WinePrice),
+			})
+		}
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].diff == entries[j].diff {
+			return entries[i].actual > entries[j].actual
+		}
+		return entries[i].diff < entries[j].diff
+	})
+
+	jStat := JsonStats{
+		Title:       "Best Price Guess",
+		Description: "Closest single guess to the actual price",
+		Table:       make([][]string, 0, len(entries)+1),
+	}
+	jStat.Table = append(jStat.Table, []string{"User", "Wine Name", "Their Guess", "Actual Price", "Difference"})
+	for _, e := range entries {
+		jStat.Table = append(jStat.Table, []string{
+			e.user,
+			e.wine.WineName,
+			fmt.Sprintf("$%.2f", e.guess),
+			fmt.Sprintf("$%.2f", e.actual),
+			fmt.Sprintf("$%.2f", e.diff),
+		})
+	}
+	return jStat
+}
+
+func mostContrarian(wineRankings []CrowdWineRating, ratingsByUser map[string][]*datamodels.WineRating) JsonStats {
+	crowdAvg := make(map[int]float64, len(wineRankings))
+	for _, wr := range wineRankings {
+		crowdAvg[wr.Wine.AnonymizedNumber] = wr.Rating
+	}
+
+	contrarians := make([]Stat[string], 0, len(ratingsByUser))
+	for user, ratings := range ratingsByUser {
+		var totalDev float64
+		var counted int
+		for _, r := range ratings {
+			avg, ok := crowdAvg[r.AnonymizedNumber]
+			if !ok {
+				continue
+			}
+			totalDev += math.Abs(float64(r.Rating) - avg)
+			counted++
+		}
+		if counted == 0 {
+			continue
+		}
+		contrarians = append(contrarians, Stat[string]{
+			Name:       user,
+			FloatValue: totalDev / float64(counted),
+			IntValue:   counted,
+		})
+	}
+	sortFloat(contrarians)
+
+	jStat := JsonStats{
+		Title:       "Most Contrarian",
+		Description: "Whose ratings deviated most from the crowd",
+		Table:       make([][]string, 0, len(contrarians)+1),
+	}
+	jStat.Table = append(jStat.Table, []string{"Name", "Avg Deviation from Crowd", "# of Ratings"})
+	for _, c := range contrarians {
+		jStat.Table = append(jStat.Table, []string{
+			c.Name,
+			fmt.Sprintf("%.2f", c.FloatValue),
+			strconv.Itoa(c.IntValue),
+		})
+	}
+	return jStat
 }
 
 func sortFloat[T any](sli []Stat[T]) {
