@@ -85,28 +85,6 @@
     .action-card.highlight:active { background: #b52a3e; }
     @media (hover: hover) { .action-card.highlight:hover { background: #b52a3e; } }
 
-    .stats-btn {
-      margin: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      cursor: pointer;
-      text-decoration: none;
-      color: var(--text);
-      transition: background 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .stats-btn:active { background: var(--surface-raised); }
-    @media (hover: hover) { .stats-btn:hover { background: var(--surface-raised); } }
-    .stats-btn-left { display: flex; align-items: center; gap: 12px; }
-    .stats-btn-icon { font-size: 1.4rem; }
-    .stats-btn-label { font-weight: 600; font-size: 0.95rem; }
-    .stats-btn-arrow { color: var(--gold); font-size: 1.1rem; }
-
     /* Divider */
     .divider {
       margin: 28px 24px 0;
@@ -211,14 +189,6 @@
       <div class="action-label">Rate Wine</div>
     </a>
   </div>
-
-  <a href="/stats-display" class="stats-btn">
-    <div class="stats-btn-left">
-      <div class="stats-btn-icon">📊</div>
-      <div class="stats-btn-label">View Stats</div>
-    </div>
-    <div class="stats-btn-arrow">→</div>
-  </a>
 
   <div class="divider">
     <div class="divider-line"></div>
