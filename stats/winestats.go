@@ -43,18 +43,21 @@ func Calc(allWines []*datamodels.Wine, allRatings []*datamodels.WineRating) []Js
 		numToWine[wine.AnonymizedNumber] = wine
 	}
 
-	wineRankings := generateWineRankings(ratingsByWine, numToWine)
+	userAvg := userAverageRatings(ratingsByUser)
+	wineRankings := generateWineRankings(ratingsByWine, numToWine, userAvg)
+	looAvg := leaveOneOutWeightedAvg(ratingsByWine, userAvg)
 
 	return ap(nil,
-		howAUserRates(ratingsByUser),
-		mostRated(ratingsByWine, numToWine),
+		howAUserRates(ratingsByUser, userAvg),
 		userCorrelationCoefficient(ratingsByUser, numToWine),
 		bestPriceGuess(ratingsByUser, numToWine),
-		mostContrarian(wineRankings, ratingsByUser),
-		trueToTheCrowd(wineRankings, ratingsByUser),
-		controversialWine(ratingsByWine, numToWine),
+		mostContrarian(looAvg, ratingsByUser, userAvg),
+		trueToTheCrowd(looAvg, ratingsByUser, userAvg),
+		controversialWine(ratingsByWine, numToWine, userAvg),
 		topValueWine(wineRankings),
 		bestWine(wineRankings),
+		typeRankings(ratingsByWine, numToWine, userAvg),
+		userFavoriteType(ratingsByUser, numToWine, userAvg),
 	)
 }
 
@@ -62,13 +65,14 @@ func ap(s []JsonStats, stats ...JsonStats) []JsonStats {
 	return append(s, stats...)
 }
 
-func howAUserRates(ratingsByUser map[string][]*datamodels.WineRating) JsonStats {
-	stat := JsonStats{
+func howAUserRates(ratingsByUser map[string][]*datamodels.WineRating, userAvg map[string]float64) JsonStats {
+	globalMean := userAvg[""]
+	st := JsonStats{
 		Title:       "Your rating stats",
 		Description: "Are you a generous rater?",
 		Table:       make([][]string, 0, len(ratingsByUser)+1),
 	}
-	stat.Table = append(stat.Table, []string{"User", "Number of Ratings", "Average Rating"})
+	st.Table = append(st.Table, []string{"User", "# of Ratings", "Avg Rating", "Scaling Factor"})
 
 	averageRatingsPerUser := make([]Stat[string], 0, len(ratingsByUser))
 	for user, ratings := range ratingsByUser {
@@ -79,24 +83,26 @@ func howAUserRates(ratingsByUser map[string][]*datamodels.WineRating) JsonStats 
 		for _, rating := range ratings {
 			sum += float64(rating.Rating)
 		}
-
 		averageRatingsPerUser = append(averageRatingsPerUser, Stat[string]{
-			Name: user,
-			// Number of Ratings
-			IntValue: len(ratingsByUser[user]),
-			// Average Rating
-			FloatValue: sum / float64(len(ratingsByUser[user])),
+			Name:     user,
+			IntValue: len(ratings),
+			FloatValue: sum / float64(len(ratings)),
 		})
 	}
 	sortInt(averageRatingsPerUser)
 	for _, user := range averageRatingsPerUser {
-		stat.Table = append(stat.Table, []string{
+		scalingFactor := 1.0
+		if user.FloatValue != 0 {
+			scalingFactor = globalMean / user.FloatValue
+		}
+		st.Table = append(st.Table, []string{
 			user.Name,
 			fmt.Sprintf("%d", user.IntValue),
-			fmt.Sprintf("%f", user.FloatValue),
+			fmt.Sprintf("%.2f", user.FloatValue),
+			fmt.Sprintf("%.2f×", scalingFactor),
 		})
 	}
-	return stat
+	return st
 }
 
 func bestWine(wineRankings []CrowdWineRating) JsonStats {
@@ -122,14 +128,15 @@ func bestWine(wineRankings []CrowdWineRating) JsonStats {
 	return stat
 }
 
-func controversialWine(wineRatings map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) JsonStats {
+func controversialWine(wineRatings map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine, userAvg map[string]float64) JsonStats {
+	globalMean := userAvg[""]
 	stdevs := make([]Stat[*datamodels.Wine], 0, len(wineRatings))
 	for _, wine := range wineRatings {
-		allRatings := make([]float64, 0, len(wineRatings))
+		allRatings := make([]float64, 0, len(wine))
 		stdevs = append(stdevs, Stat[*datamodels.Wine]{})
 
 		for _, rating := range wine {
-			allRatings = append(allRatings, float64(rating.Rating))
+			allRatings = append(allRatings, biasAdjusted(float64(rating.Rating), userAvg[rating.WineUser], globalMean))
 			stdevs[len(stdevs)-1].Name = numToWine[rating.AnonymizedNumber]
 		}
 		dev := stat.PopStdDev(allRatings, nil)
@@ -160,7 +167,71 @@ func controversialWine(wineRatings map[int][]*datamodels.WineRating, numToWine m
 	return jStat
 }
 
-func generateWineRankings(ratingsByWine map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) []CrowdWineRating {
+// leaveOneOutWeightedAvg returns, for each user, the bias-adjusted crowd average
+// for each wine they rated — computed from everyone else's ratings only.
+func leaveOneOutWeightedAvg(ratingsByWine map[int][]*datamodels.WineRating, userAvg map[string]float64) map[string]map[int]float64 {
+	globalMean := userAvg[""]
+	out := make(map[string]map[int]float64)
+	for wineNum, ratings := range ratingsByWine {
+		for _, r := range ratings {
+			user := r.WineUser
+			if out[user] == nil {
+				out[user] = make(map[int]float64)
+			}
+			var sum float64
+			var count int
+			for _, other := range ratings {
+				if other.WineUser == user {
+					continue
+				}
+				sum += biasAdjusted(float64(other.Rating), userAvg[other.WineUser], globalMean)
+				count++
+			}
+			if count == 0 {
+				continue
+			}
+			out[user][wineNum] = sum / float64(count)
+		}
+	}
+	return out
+}
+
+// userAverageRatings returns each user's mean rating and the global mean.
+func userAverageRatings(ratingsByUser map[string][]*datamodels.WineRating) map[string]float64 {
+	avgs := make(map[string]float64, len(ratingsByUser))
+	var globalSum float64
+	var globalCount int
+	for user, ratings := range ratingsByUser {
+		if len(ratings) == 0 {
+			continue
+		}
+		var sum float64
+		for _, r := range ratings {
+			sum += float64(r.Rating)
+		}
+		avgs[user] = sum / float64(len(ratings))
+		globalSum += sum
+		globalCount += len(ratings)
+	}
+	if globalCount > 0 {
+		globalMean := globalSum / float64(globalCount)
+		// Store global mean under empty key so callers can reference it.
+		avgs[""] = globalMean
+	}
+	return avgs
+}
+
+// biasAdjusted scales a raw rating by (globalMean / userMean) so generous/stingy
+// raters are normalised before wines are ranked.
+func biasAdjusted(raw float64, userMean, globalMean float64) float64 {
+	if userMean == 0 {
+		return raw
+	}
+	return raw * (globalMean / userMean)
+}
+
+func generateWineRankings(ratingsByWine map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine, userAvg map[string]float64) []CrowdWineRating {
+	globalMean := userAvg[""]
 	wineRankings := make([]CrowdWineRating, 0, len(ratingsByWine))
 	for num, ratings := range ratingsByWine {
 		if numToWine[num].WinePrice == 0.0 {
@@ -168,12 +239,12 @@ func generateWineRankings(ratingsByWine map[int][]*datamodels.WineRating, numToW
 		}
 		sum := 0.0
 		for _, rating := range ratings {
-			sum += float64(rating.Rating)
+			sum += biasAdjusted(float64(rating.Rating), userAvg[rating.WineUser], globalMean)
 		}
 		wineRankings = append(wineRankings, CrowdWineRating{
 			Wine:       numToWine[num],
-			Rating:     sum / float64(len(ratingsByWine[num])),
-			NumRatings: len(ratingsByWine[num]),
+			Rating:     sum / float64(len(ratings)),
+			NumRatings: len(ratings),
 		})
 	}
 	sort.Slice(wineRankings, func(i, j int) bool {
@@ -223,24 +294,28 @@ func topValueWine(wineRankings []CrowdWineRating) JsonStats {
 	return stat
 }
 
-func trueToTheCrowd(wineRankings []CrowdWineRating, ratingsByUser map[string][]*datamodels.WineRating) JsonStats {
+func trueToTheCrowd(looAvg map[string]map[int]float64, ratingsByUser map[string][]*datamodels.WineRating, userAvg map[string]float64) JsonStats {
+	globalMean := userAvg[""]
 	stat := JsonStats{
 		Title:       "True to the Crowd",
 		Description: "Who's taste best aligned with the crowd's opinion?",
 	}
 
-	numToCrowdRanking := make(map[int]CrowdWineRating, len(wineRankings))
-	for _, wine := range wineRankings {
-		numToCrowdRanking[wine.Wine.AnonymizedNumber] = wine
-	}
-
 	correlations := make([]Stat[string], 0, len(ratingsByUser))
 	for user, ratings := range ratingsByUser {
+		userWineAvgs, ok := looAvg[user]
+		if !ok {
+			continue
+		}
 		guesses := make([]float64, 0, len(ratings))
 		actualRating := make([]float64, 0, len(ratings))
 		for _, rating := range ratings {
-			guesses = append(guesses, float64(rating.Rating))
-			actualRating = append(actualRating, numToCrowdRanking[rating.AnonymizedNumber].Rating)
+			crowdScore, ok := userWineAvgs[rating.AnonymizedNumber]
+			if !ok {
+				continue
+			}
+			guesses = append(guesses, biasAdjusted(float64(rating.Rating), userAvg[user], globalMean))
+			actualRating = append(actualRating, crowdScore)
 		}
 		correlation := calculateCorrelation(guesses, actualRating)
 		if correlation == nil {
@@ -312,43 +387,6 @@ func userCorrelationCoefficient(ratingsByUser map[string][]*datamodels.WineRatin
 	return stat
 }
 
-func mostRated(ratingsByWine map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) JsonStats {
-	entries := make([]Stat[*datamodels.Wine], 0, len(ratingsByWine))
-	for num, ratings := range ratingsByWine {
-		wine, ok := numToWine[num]
-		if !ok {
-			continue
-		}
-		sum := 0.0
-		for _, r := range ratings {
-			sum += float64(r.Rating)
-		}
-		entries = append(entries, Stat[*datamodels.Wine]{
-			Name:       wine,
-			IntValue:   len(ratings),
-			FloatValue: sum / float64(len(ratings)),
-		})
-	}
-	sortInt(entries)
-
-	jStat := JsonStats{
-		Title:       "Most Rated",
-		Description: "The wines everyone had an opinion on",
-		Table:       make([][]string, 0, len(entries)+1),
-	}
-	jStat.Table = append(jStat.Table, []string{"Wine #", "Wine Name", "# of Ratings", "Avg Rating", "Brought By"})
-	for _, e := range entries {
-		jStat.Table = append(jStat.Table, []string{
-			strconv.Itoa(e.Name.AnonymizedNumber),
-			e.Name.WineName,
-			strconv.Itoa(e.IntValue),
-			fmt.Sprintf("%.2f", e.FloatValue),
-			e.Name.BroughtBy(),
-		})
-	}
-	return jStat
-}
-
 func bestPriceGuess(ratingsByUser map[string][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine) JsonStats {
 	type guessEntry struct {
 		user   string
@@ -399,22 +437,20 @@ func bestPriceGuess(ratingsByUser map[string][]*datamodels.WineRating, numToWine
 	return jStat
 }
 
-func mostContrarian(wineRankings []CrowdWineRating, ratingsByUser map[string][]*datamodels.WineRating) JsonStats {
-	crowdAvg := make(map[int]float64, len(wineRankings))
-	for _, wr := range wineRankings {
-		crowdAvg[wr.Wine.AnonymizedNumber] = wr.Rating
-	}
-
+func mostContrarian(looAvg map[string]map[int]float64, ratingsByUser map[string][]*datamodels.WineRating, userAvg map[string]float64) JsonStats {
+	globalMean := userAvg[""]
 	contrarians := make([]Stat[string], 0, len(ratingsByUser))
 	for user, ratings := range ratingsByUser {
+		userWineAvgs := looAvg[user]
 		var totalDev float64
 		var counted int
 		for _, r := range ratings {
-			avg, ok := crowdAvg[r.AnonymizedNumber]
+			crowdScore, ok := userWineAvgs[r.AnonymizedNumber]
 			if !ok {
 				continue
 			}
-			totalDev += math.Abs(float64(r.Rating) - avg)
+			adjusted := biasAdjusted(float64(r.Rating), userAvg[user], globalMean)
+			totalDev += math.Abs(adjusted - crowdScore)
 			counted++
 		}
 		if counted == 0 {
@@ -486,6 +522,124 @@ func calculateCorrelation(guesses, actualPrices []float64) *float64 {
 	}
 	f := covariance / math.Sqrt(varianceGuess*varianceActual)
 	return &f
+}
+
+func typeRankings(ratingsByWine map[int][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine, userAvg map[string]float64) JsonStats {
+	globalMean := userAvg[""]
+	type typeAccum struct {
+		sum   float64
+		count int
+	}
+	byType := make(map[string]*typeAccum)
+
+	for num, ratings := range ratingsByWine {
+		wine, ok := numToWine[num]
+		if !ok || wine.WineType == "" {
+			continue
+		}
+		if byType[wine.WineType] == nil {
+			byType[wine.WineType] = &typeAccum{}
+		}
+		for _, r := range ratings {
+			byType[wine.WineType].sum += biasAdjusted(float64(r.Rating), userAvg[r.WineUser], globalMean)
+			byType[wine.WineType].count++
+		}
+	}
+
+	entries := make([]Stat[string], 0, len(byType))
+	for t, acc := range byType {
+		if acc.count == 0 {
+			continue
+		}
+		entries = append(entries, Stat[string]{
+			Name:       t,
+			FloatValue: acc.sum / float64(acc.count),
+			IntValue:   acc.count,
+		})
+	}
+	sortFloat(entries)
+
+	jStat := JsonStats{
+		Title:       "Wine Type Rankings",
+		Description: "Which style the crowd rated highest on average",
+		Table:       make([][]string, 0, len(entries)+1),
+	}
+	jStat.Table = append(jStat.Table, []string{"Wine Type", "Avg Rating", "# of Ratings"})
+	for _, e := range entries {
+		jStat.Table = append(jStat.Table, []string{
+			e.Name,
+			fmt.Sprintf("%.2f", e.FloatValue),
+			strconv.Itoa(e.IntValue),
+		})
+	}
+	return jStat
+}
+
+func userFavoriteType(ratingsByUser map[string][]*datamodels.WineRating, numToWine map[int]*datamodels.Wine, userAvg map[string]float64) JsonStats {
+	globalMean := userAvg[""]
+	type typeAccum struct {
+		sum   float64
+		count int
+	}
+
+	type userEntry struct {
+		user     string
+		topType  string
+		topAvg   float64
+		numTypes int
+	}
+
+	entries := make([]userEntry, 0, len(ratingsByUser))
+	for user, ratings := range ratingsByUser {
+		byType := make(map[string]*typeAccum)
+		for _, r := range ratings {
+			wine, ok := numToWine[r.AnonymizedNumber]
+			if !ok || wine.WineType == "" {
+				continue
+			}
+			if byType[wine.WineType] == nil {
+				byType[wine.WineType] = &typeAccum{}
+			}
+			byType[wine.WineType].sum += biasAdjusted(float64(r.Rating), userAvg[user], globalMean)
+			byType[wine.WineType].count++
+		}
+		if len(byType) == 0 {
+			continue
+		}
+		var topType string
+		var topAvg float64
+		for t, acc := range byType {
+			avg := acc.sum / float64(acc.count)
+			if avg > topAvg || topType == "" {
+				topAvg = avg
+				topType = t
+			}
+		}
+		entries = append(entries, userEntry{
+			user:     user,
+			topType:  topType,
+			topAvg:   topAvg,
+			numTypes: len(byType),
+		})
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].topAvg > entries[j].topAvg
+	})
+
+	jStat := JsonStats{
+		Title:       "Your Taste Profile",
+		Description: "Each person's highest-rated wine type",
+		Table:       make([][]string, 0, len(entries)+1),
+	}
+	jStat.Table = append(jStat.Table, []string{"User", "Favorite Type", "Avg Rating for Type"})
+	for _, e := range entries {
+		jStat.Table = append(jStat.Table, []string{
+			e.user,
+			e.topType,
+			fmt.Sprintf("%.2f", e.topAvg),
+		})
+	}
+	return jStat
 }
 
 func mean(data []float64) float64 {

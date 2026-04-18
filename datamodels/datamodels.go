@@ -20,6 +20,7 @@ type Wine struct {
 	AnonymizedNumber int     `json:"anonymizedNumber" dynamodbav:"n"`
 	Username         string  `json:"username" dynamodbav:"u"`
 	BroughtWith      string  `json:"broughtWith" dynamodbav:"broughtWith"`
+	WineType         string  `json:"wineType" dynamodbav:"wineType"`
 }
 
 func (w *Wine) BroughtBy() string {
@@ -33,6 +34,7 @@ func (w *Wine) Normalize() *Wine {
 	w.WineName = utils.Normalize(w.WineName)
 	w.BroughtWith = utils.Normalize(w.BroughtWith)
 	w.Username = utils.Normalize(w.Username)
+	w.WineType = utils.Normalize(w.WineType)
 	return w
 }
 

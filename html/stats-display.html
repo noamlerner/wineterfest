@@ -448,10 +448,12 @@
 
     // Keyboard navigation
     document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); navigate(1); }
       if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
-      if (e.key === 'Enter' || e.key === 'r') {
+      if (e.key === ' ' || e.key === 'Enter' || e.key === 'r') {
+        e.preventDefault();
         if (!revealed[currentIndex]) reveal(currentIndex);
+        else navigate(1);
       }
     });
 

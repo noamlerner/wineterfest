@@ -80,6 +80,27 @@
     input::placeholder { color: var(--muted); }
     input::-webkit-inner-spin-button,
     input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      padding: 15px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a7a75' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+    }
+    select:focus { border-color: var(--gold); }
+    select option { background: #1c1215; }
     .hint {
       font-size: 0.8rem;
       color: var(--muted);
@@ -150,6 +171,24 @@
     </div>
 
     <div class="field">
+      <label for="wine-type">Wine type</label>
+      <select id="wine-type">
+        <option value="">Select a type...</option>
+        <option value="Pinot Noir">Pinot Noir</option>
+        <option value="Cabernet Sauvignon">Cabernet Sauvignon</option>
+        <option value="Merlot">Merlot</option>
+        <option value="Syrah / Shiraz">Syrah / Shiraz</option>
+        <option value="Malbec">Malbec</option>
+        <option value="Chardonnay">Chardonnay</option>
+        <option value="Sauvignon Blanc">Sauvignon Blanc</option>
+        <option value="Riesling">Riesling</option>
+        <option value="Rosé">Rosé</option>
+        <option value="Sparkling / Prosecco">Sparkling / Prosecco</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="field">
       <label for="brought-with">Brought with <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
       <input type="text" id="brought-with" placeholder="Co-conspirator's name" autocapitalize="words">
     </div>
@@ -180,6 +219,7 @@
       const winePrice = parseFloat(document.getElementById('wine-price').value);
       const anonymizedNumber = parseInt(document.getElementById('anonymized-number').value, 10);
       const broughtWith = document.getElementById('brought-with').value.trim();
+      const wineType = document.getElementById('wine-type').value;
       const username = getCookie('wineuserc');
 
       if (!username) { window.location.href = '/signin'; return; }
@@ -191,7 +231,7 @@
         const response = await fetch('/register-wine', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ wineName, winePrice, anonymizedNumber, username, broughtWith }),
+          body: JSON.stringify({ wineName, winePrice, anonymizedNumber, username, broughtWith, wineType }),
         });
         if (response.ok) {
           document.getElementById('success').classList.add('show');

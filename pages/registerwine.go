@@ -66,6 +66,25 @@ func (s *RegisterWine) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	validTypes := map[string]bool{
+		"":                    true,
+		"Pinot Noir":          true,
+		"Cabernet Sauvignon":  true,
+		"Merlot":              true,
+		"Syrah / Shiraz":      true,
+		"Malbec":              true,
+		"Chardonnay":          true,
+		"Sauvignon Blanc":     true,
+		"Riesling":            true,
+		"Rosé":                true,
+		"Sparkling / Prosecco": true,
+		"Other":               true,
+	}
+	if !validTypes[wineRegistration.WineType] {
+		http.Error(w, "Invalid wine type", 400)
+		return
+	}
+
 	err = s.CL.CreateWine(r.Context(), &wineRegistration)
 	if err != nil {
 		http.Error(w, "Number already in use", 403)
