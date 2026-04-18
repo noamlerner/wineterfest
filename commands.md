@@ -1,6 +1,7 @@
 ssh command
 
 ```
+cd ~/Dev
 ssh -i "key.pem" ec2-user@ec2-18-144-90-118.us-west-1.compute.amazonaws.com
 ```
 
